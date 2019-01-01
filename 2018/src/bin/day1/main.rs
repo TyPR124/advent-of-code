@@ -17,7 +17,6 @@ fn part1(mut start: isize, input: &str) -> isize {
 
 fn part2(mut start: isize, input: &str) -> isize {
     use std::collections::HashSet;
-    use std::hash::Hash;
     let mut freqs = HashSet::<isize>::new();
     loop {
         for line in input.lines() {
