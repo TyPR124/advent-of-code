@@ -1,0 +1,9 @@
+[package]
+name = "AoC_2018"
+version = "0.1.0"
+authors = ["Tyler <t.ruckinger@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+regex = "*"
+lazy_static = "*"
