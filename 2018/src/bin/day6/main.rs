@@ -113,9 +113,6 @@ impl FromStr for Point {
     type Err = Error;
     fn from_str(s: &str) -> Result<Point> {
         let mut parts = s.split(", ");
-        for p in parts.clone() {
-            println!("Part: {}", p);
-        }
         if parts.clone().count() != 2 {
             Err(err!("Expected 2 parts in Point::from_str()"))
         } else {
