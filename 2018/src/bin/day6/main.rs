@@ -16,10 +16,27 @@ pub fn main() -> Result<()> {
     for line in INPUT.trim().lines() {
         points.push(line.parse::<Point>()?)
     }
-    let max_area = part1(&points)?;
+    let mut bounds: Bounds = Default::default();
+    // Get bounds of all points. Incrase size by 1 in each direction.
+    // Later, anything touching the extremem edges can be considered DQ for being infinite
+    points.iter().for_each(|p| {
+        if p.x <= bounds.min_x {
+            bounds.min_x = p.x - 1;
+        }
+        if p.x >= bounds.max_x {
+            bounds.max_x = p.x + 1;
+        }
+        if p.y <= bounds.min_y {
+            bounds.min_y = p.y - 1;
+        }
+        if p.y >= bounds.max_y {
+            bounds.max_y = p.y + 1;
+        }
+    });
+    let max_area = part1(&points, bounds)?;
     println!("Part1: Max Area: {}", max_area);
-
-
+    let close_area = part2(&points, bounds)?;
+    println!("Part2: Close Area: {}", close_area);
     Ok(())
 }
 
@@ -38,26 +55,7 @@ fn distance(p1: &Point, p2: &Point) -> usize {
     xd + yd
 }
 
-fn part1(points: &Vec<Point>) -> Result<usize> {
-    //let mut grid = HashMap::new();
-
-    let mut bounds: Bounds = Default::default();
-    // Get bounds of all points. Incrase size by 1 in each direction.
-    // Later, anything touching the extremem edges can be considered DQ for being infinite
-    points.iter().for_each(|p| {
-        if p.x <= bounds.min_x {
-            bounds.min_x = p.x - 1;
-        }
-        if p.x >= bounds.max_x {
-            bounds.max_x = p.x + 1;
-        }
-        if p.y <= bounds.min_y {
-            bounds.min_y = p.y - 1;
-        }
-        if p.y >= bounds.max_y {
-            bounds.max_y = p.y + 1;
-        }
-    });
+fn part1(points: &Vec<Point>, bounds: Bounds) -> Result<usize> {
     use std::sync::Mutex;
     let results = Mutex::new(HashMap::<usize, usize>::new());
     let disq = Mutex::new(HashSet::<usize>::new());
@@ -96,6 +94,15 @@ fn part1(points: &Vec<Point>) -> Result<usize> {
     Ok(results.iter().filter(|kv| {
         !disq.contains(kv.0)
     }).map(|kv| kv.1).max()?.clone())
+}
+fn part2(points: &Vec<Point>, bounds: Bounds) -> Result<usize> {
+    use std::sync::Mutex;
+    //let total = Mutex::new(0);
+    Ok(bounds.all_points().par_iter().map(|r| {
+        let mut r_total = 0;
+        points.iter().for_each(|p| { r_total += distance(&p, &r) });
+        r_total
+    }).filter(|t| *t < 10000).count())
 }
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 struct Point {
