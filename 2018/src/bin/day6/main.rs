@@ -96,8 +96,6 @@ fn part1(points: &Vec<Point>, bounds: Bounds) -> Result<usize> {
     }).map(|kv| kv.1).max()?.clone())
 }
 fn part2(points: &Vec<Point>, bounds: Bounds) -> Result<usize> {
-    use std::sync::Mutex;
-    //let total = Mutex::new(0);
     Ok(bounds.all_points().par_iter().map(|r| {
         let mut r_total = 0;
         points.iter().for_each(|p| { r_total += distance(&p, &r) });
