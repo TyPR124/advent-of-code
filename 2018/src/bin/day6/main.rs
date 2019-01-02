@@ -16,11 +16,13 @@ pub fn main() -> Result<()> {
     for line in INPUT.trim().lines() {
         points.push(line.parse::<Point>()?)
     }
-    part1(&points);
+    let max_area = part1(&points)?;
+    println!("Part1: Max Area: {}", max_area);
 
 
     Ok(())
 }
+
 
 fn distance(p1: &Point, p2: &Point) -> usize {
     fn abs(i: isize) -> isize {
@@ -42,7 +44,7 @@ fn part1(points: &Vec<Point>) -> Result<usize> {
     let mut bounds: Bounds = Default::default();
     // Get bounds of all points. Incrase size by 1 in each direction.
     // Later, anything touching the extremem edges can be considered DQ for being infinite
-    bounds = points.iter().fold(bounds, |mut bounds, p| {
+    points.iter().for_each(|p| {
         if p.x <= bounds.min_x {
             bounds.min_x = p.x - 1;
         }
@@ -55,27 +57,51 @@ fn part1(points: &Vec<Point>) -> Result<usize> {
         if p.y >= bounds.max_y {
             bounds.max_y = p.y + 1;
         }
-        bounds
+    });
+    use std::sync::Mutex;
+    let results = Mutex::new(HashMap::<usize, usize>::new());
+    let disq = Mutex::new(HashSet::<usize>::new());
+    
+    bounds.all_points().par_iter().for_each(|r| { // r becasue it's a (not-so-)random point in the bounds
+        let mut min = std::usize::MAX;
+        let mut owners = 0;
+        let mut winner = 0;
+        points.iter().enumerate().for_each(|(i, o)| { // o because it's a potential owner
+            let r_o = distance(&r, &o);
+            if r_o < min {
+                min = r_o;
+                winner = i;
+                owners = 1;
+            } else if r_o == min {
+                owners += 1;
+            }
+        });
+        if owners == 1 {
+            if bounds.is_on_perimeter(r) { // It is perimeter, therefore winner is disqualified
+                let mut dqguard = disq.lock().expect("Failed to wait for disq lock");
+                dqguard.insert(winner);
+                drop(dqguard);
+            } else {
+                let mut mapguard = results.lock().expect("Failed to wait for results lock");
+                use std::ops::AddAssign;
+                mapguard.entry(winner).or_insert(0).add_assign(1);
+                drop(mapguard);
+            }
+        }
     });
 
-    
+    let results = results.into_inner()?;
+    let disq = disq.into_inner()?;
 
-    Ok(0)
+    Ok(results.iter().filter(|kv| {
+        !disq.contains(kv.0)
+    }).map(|kv| kv.1).max()?.clone())
 }
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 struct Point {
     pub x: isize,
     pub y: isize,
 }
-struct Owner {
-    pub id: usize,
-    pub dist: usize,
-}
-enum State {
-    Owned(Owner),
-    Tied,
-}
-
 impl FromStr for Point {
     type Err = Error;
     fn from_str(s: &str) -> Result<Point> {
@@ -87,49 +113,12 @@ impl FromStr for Point {
             Err(err!("Expected 2 parts in Point::from_str()"))
         } else {
             Ok(Point {
-                x: parts.next().unwrap().parse()?,
-                y: parts.next().unwrap().parse()?
+                x: parts.next()?.parse()?,
+                y: parts.next()?.parse()?
             })
         }
     }
 }
-
-#[derive(PartialEq, Eq, Clone, Copy)]
-struct Size {
-    pub x: usize,
-    pub y: usize,
-}
-#[derive(PartialEq, Eq, Clone, Copy)]
-struct Rect {
-    pub origin: Point, // Origin is top_left
-    pub size: Size,
-}
-
-impl Rect {
-    pub fn from_sides(left: isize, right: isize, top: isize, bottom: isize) -> Rect {
-        Rect {
-            origin: Point { x: left, y: top },
-            size: Size { x: (right-left+1) as usize, y: (bottom-top+1) as usize }
-        }
-    }
-    pub fn left(&self) -> isize {
-        self.origin.x
-    }
-    pub fn right(&self) -> isize {
-        self.origin.x + self.size.x as isize - 1
-    }
-    pub fn top(&self) -> isize {
-        self.origin.y
-    }
-    pub fn bottom(&self) -> isize {
-        self.origin.y + self.size.y as isize - 1
-    }
-    pub fn contains(&self, p: &Point) -> bool {
-        p.x >= self.left() && p.x <= self.right() &&
-        p.y >= self.top() && p.y <= self.bottom()
-    }
-}
-
 #[derive(Copy, Clone)]
 struct Bounds {
     pub min_x: isize,
@@ -142,8 +131,24 @@ impl Bounds {
         p.x >= self.min_x && p.x <= self.max_x &&
         p.y >= self.min_y && p.y <= self.max_y
     }
-    pub fn points(&self) -> PointGenerator {
-        PointGenerator::new(*self)
+    pub fn all_points(&self) -> Vec<Point> {
+        //PointGenerator::new(*self)
+        let mut vec = Vec::with_capacity(self.area());
+        for y in self.min_y..=self.max_y {
+            for x in self.min_x..=self.max_x {
+                vec.push(Point{x,y});
+            }
+        }
+        vec
+    }
+    pub fn is_on_perimeter(&self, p: &Point) -> bool {
+        self.contains(p) &&
+        (p.x == self.min_x || p.x == self.max_x) ||
+        (p.y == self.min_y || p.y == self.max_y)
+    }
+    pub fn area(&self) -> usize {
+        (self.max_x - self.min_x + 1) as usize *
+        (self.max_y - self.min_y + 1) as usize
     }
 }
 
@@ -154,46 +159,6 @@ impl Default for Bounds {
             min_y: std::isize::MAX,
             max_x: std::isize::MIN,
             max_y: std::isize::MIN,
-        }
-    }
-}
-
-struct PointGenerator {
-    bounds: Bounds,
-    x: isize,
-    y: isize,
-    out: bool,
-}
-
-impl PointGenerator {
-    fn new(bounds: Bounds) -> PointGenerator {
-        PointGenerator {
-            bounds,
-            x: bounds.min_x,
-            y: bounds.min_y,
-            out: false
-        }
-    }
-}
-
-impl Iterator for PointGenerator {
-    type Item = Point;
-    fn next(&mut self) -> Option<Point> {
-        if self.out {
-            None
-        } else {
-            let p = Point{x: self.x, y: self.y};
-            if self.x == self.bounds.max_x {
-                if self.y == self.bounds.max_y {
-                    self.out = true;
-                } else {
-                    self.x = self.bounds.min_x;
-                    self.y += 1;
-                }
-            } else {
-                self.x += 1;
-            }
-            Some(p)
         }
     }
 }

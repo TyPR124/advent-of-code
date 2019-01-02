@@ -30,6 +30,12 @@ macro_rules! impl_froms_for_error {
     };
 }
 
+impl<T> From<std::sync::PoisonError<T>> for Error {
+    fn from(e: std::sync::PoisonError<T>) -> Error {
+        Error(format!("PoisonError: {:?}", e))
+    }
+}
+
 impl_froms_for_error!(
     std::string::FromUtf8Error,
     std::num::ParseIntError,
