@@ -15,18 +15,16 @@ fn main() -> Result<()> {
 fn part1(input: &str) -> usize {
     let input = input.trim().as_bytes();
     let mut new = Vec::<u8>::with_capacity(input.len());
-    input.iter().fold(&mut new, |new, b| {
+    input.iter().for_each(|b| {
         if new.len() == 0 {
             new.push(*b);
-            new
         } else if is_match(new[new.len()-1], *b) {
             new.pop();
-            new
         } else {
             new.push(*b);
-            new
         }
-    }).len()
+    });
+    new.len()
 }
 
 fn part2(input: &str) -> Result<usize> {
@@ -36,7 +34,7 @@ fn part2(input: &str) -> Result<usize> {
     for b in b'A'..=b'Z' {
         all.insert(b, Vec::<u8>::with_capacity(input.len()));
     }
-    let all_final = input.iter().fold(&mut all, |all, b| {
+    input.iter().for_each(|b| {
         all.iter_mut().filter(|kv| *kv.0 != b.to_ascii_uppercase()).for_each(|kv| {
             if kv.1.len() == 0 {
                 kv.1.push(*b);
@@ -46,9 +44,8 @@ fn part2(input: &str) -> Result<usize> {
                 kv.1.push(*b);
             }
         });
-        all
     });
-    Ok(all_final.values().map(|v| v.len()).min()?)
+    Ok(all.values().map(|v| v.len()).min()?)
 }
 
 fn is_match(a: u8, b: u8) -> bool {
