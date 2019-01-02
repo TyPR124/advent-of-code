@@ -7,19 +7,37 @@ impl Error {
         Error(s)
     }
 }
-impl From<std::string::FromUtf8Error> for Error {
-    fn from(e: std::string::FromUtf8Error) -> Error {
-        Error(format!("FromUtf8Error: {:?}", e))
-    }
+
+// impl From<std::string::FromUtf8Error> for Error {
+//     fn from(e: std::string::FromUtf8Error) -> Error {
+//         Error(format!("FromUtf8Error: {:?}", e))
+//     }
+// }
+// impl From<std::num::ParseIntError> for Error {
+//     fn from(e: std::num::ParseIntError) -> Error {
+//         Error(format!("ParseIntError: {:?}", e))
+//     }
+// }
+macro_rules! impl_froms_for_error {
+    ($($from:ty),*) => {
+        $(
+            impl From<$from> for Error {
+                fn from(e: $from) -> Error {
+                    Error(format!(concat!(stringify!($from), ": {:?}"), e))
+                }
+            }
+        )*
+    };
 }
-impl From<std::option::NoneError> for Error {
-    fn from(e: std::option::NoneError) -> Error {
-        Error(format!("NoneError: {:?}", e))
-    }
-}
+
+impl_froms_for_error!(
+    std::string::FromUtf8Error,
+    std::num::ParseIntError,
+    std::option::NoneError
+);
 #[macro_export]
 macro_rules! err {
     ($($ex:expr),*) => {
-        Err(Error::new(format!($($ex),*)));
+        Error::new(format!($($ex),*));
     };
 }
