@@ -24,7 +24,7 @@ fn main() -> Result<()> {
     let order = part1(INPUT)?;
     println!("Part1: Order: {}", order);
     let seconds_passed = part2(INPUT, 5)?; // 4 elves + me
-    println!("Part 2: Seconds Passed: {}", seconds_passed);
+    println!("Part2: Seconds Passed: {}", seconds_passed);
 
     Ok(())
 }
@@ -86,9 +86,9 @@ fn part2(input: &str, worker_count: usize) -> Result<usize> {
 
     fn time_required(step: u8) -> usize {
         const BASE: isize = 60;
-        const DECR: isize = b'A' as isize - 1; // if step == 'A', step-DECR must be 1
+        const DECR: isize = b'A' as isize - 1; // if step == 'A', step-('A'-1) = 'A' - 'A' + 1 = 1
         let time = BASE + step as isize - DECR; // BASE + (step - DECR)
-        println!("Time required for step {}: {}", step as char, time);
+        //println!("Time required for step {}: {}", step as char, time);
         time as usize
     }
 
@@ -102,62 +102,6 @@ fn part2(input: &str, worker_count: usize) -> Result<usize> {
                 *node
             })
         );
-    }
-
-    fn tick(dep_map: &mut DepMap, workers: &mut Vec<Worker>, todo: &mut Vec<u8>) -> Result<usize> {
-        let &passing_time = workers.iter().filter(|w| w.is_working()).map(|w| {
-            if let Worker::Working(_, t) = w {
-                t
-            } else {
-                panic!("Got a non-working worker in a filtered iter")
-            }
-        }).min().unwrap_or(&0);
-
-        println!(" + {}", passing_time);
-        let mut n_free = 0;
-        workers.iter_mut().for_each(|w| {
-            match w {
-                Worker::Free => n_free += 1,
-                Worker::Working(node, t) => {
-                    *t -= passing_time;
-                    if *t == 0 {
-                        dep_map.remove(node);
-                        dep_map.iter_mut().for_each( |(_, status)| {
-                            if let Status::HaveNeeds(needs) = status {
-                                needs.remove(node);
-                                if needs.len() == 0 {
-                                    *status = Status::CanDo;
-                                }
-                            }
-                        }); // removing node from needs
-                        *w = Worker::Free;
-                        n_free += 1;
-                    } // if t == 0
-                } // w was working
-            } // match w
-        }); // workers.iter_mut()...
-        println!("Found {} free workers", n_free);
-        todo.clear();
-        next_nodes(dep_map, todo, n_free);
-        println!("Found {} available jobs", todo.len());
-        workers.iter_mut().filter(|w| w == &&Worker::Free)
-            .take(todo.len())
-            .for_each(|w| {
-                let node = todo.pop().unwrap();
-                *w = Worker::Working(node, time_required(node));
-            });
-        if dep_map.len() == 0 {
-            let final_time = workers.iter().map(|w| {
-                if let Worker::Working(_, t) = w {
-                    *t
-                } else {
-                    0
-                }
-            }).max()?;
-            Ok(passing_time + final_time)
-        } else {
-            Ok(passing_time)
-        }
     }
 
     let mut dep_map = DepMap::new();
@@ -187,9 +131,66 @@ fn part2(input: &str, worker_count: usize) -> Result<usize> {
     }
     let mut todo = Vec::with_capacity(worker_count);
     while dep_map.len() > 0 {
-        print!("At t = {}", seconds_passed);
+        //print!("At t = {}", seconds_passed);
         seconds_passed += tick(&mut dep_map, &mut workers, &mut todo)?;
     }
 
-    Ok(seconds_passed)
+    return Ok(seconds_passed);
+
+
+    fn tick(dep_map: &mut DepMap, workers: &mut Vec<Worker>, todo: &mut Vec<u8>) -> Result<usize> {
+        let &passing_time = workers.iter().filter(|w| w.is_working()).map(|w| {
+            if let Worker::Working(_, t) = w {
+                t
+            } else {
+                panic!("Got a non-working worker in a filtered iter")
+            }
+        }).min().unwrap_or(&0);
+
+        //println!(" + {}", passing_time);
+        let mut n_free = 0;
+        workers.iter_mut().for_each(|w| {
+            match w {
+                Worker::Free => n_free += 1,
+                Worker::Working(node, t) => {
+                    *t -= passing_time;
+                    if *t == 0 {
+                        dep_map.remove(node);
+                        dep_map.iter_mut().for_each( |(_, status)| {
+                            if let Status::HaveNeeds(needs) = status {
+                                needs.remove(node);
+                                if needs.len() == 0 {
+                                    *status = Status::CanDo;
+                                }
+                            }
+                        }); // removing node from needs
+                        *w = Worker::Free;
+                        n_free += 1;
+                    } // if t == 0
+                } // w was working
+            } // match w
+        }); // workers.iter_mut()...
+        //println!("Found {} free workers", n_free);
+        assert_eq!(todo.len(), 0, "Todo is not empty at start of loop?"); //todo.clear();
+        next_nodes(dep_map, todo, n_free);
+        //println!("Found {} available jobs", todo.len());
+        workers.iter_mut().filter(|w| w == &&Worker::Free)
+            .take(todo.len())
+            .for_each(|w| {
+                let node = todo.pop().unwrap();
+                *w = Worker::Working(node, time_required(node));
+            });
+        if dep_map.len() == 0 {
+            let final_time = workers.iter().map(|w| {
+                if let Worker::Working(_, t) = w {
+                    *t
+                } else {
+                    0
+                }
+            }).max()?;
+            Ok(passing_time + final_time)
+        } else {
+            Ok(passing_time)
+        }
+    }
 }
