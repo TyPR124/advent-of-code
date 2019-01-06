@@ -45,7 +45,7 @@ fn part1(input: &str) -> Result<(String, usize)> {
         vel,
         ticks: 0
     };
-    // Apparently, it takes two convergences to get the answer...
+    // Apparently, it takes two convergences to get the answer
     display.to_convergence();
     display.to_convergence();
     Ok((display.text(), display.ticks))
@@ -66,47 +66,6 @@ struct Rect {
     pub min: Point,
     pub max: Point,
 }
-
-// struct PointIterator {
-//     rect: Rect,
-//     x: isize,
-//     y: isize,
-//     out: bool,
-// }
-
-// impl PointIterator {
-//     pub fn new(rect: Rect) -> PointIterator {
-//         PointIterator {
-//             rect,
-//             x: rect.min.x,
-//             y: rect.min.y,
-//             out: false,
-//         }
-//     }
-// }
-
-// impl Iterator for PointIterator {
-//     type Item = Point;
-//     fn next(&mut self) -> Option<Point> {
-//         if self.out {
-//             None
-//         } else {
-//             let p = Point {x: self.x, y: self.y};
-//             if self.x == self.rect.max.x {
-//                 if self.y == self.rect.max.y {
-//                     self.out = true;
-//                 } else {
-//                     self.x = 0;
-//                     self.y += 1;
-//                 }
-//             } else {
-//                 self.x += 1;
-//             }
-//             Some(p)
-//         }
-//     }
-// }
-
 impl Rect {
     pub fn from_points(points: &[Point]) -> Rect {
         let mut min = Point { x: std::isize::MAX, y: std::isize::MAX };
@@ -129,19 +88,11 @@ impl Rect {
             y: (self.max.y - self.min.y) as f64 / 2f64,
         }
     }
-
-    // pub fn points(&self) -> PointIterator {
-    //     PointIterator::new(*self)
-    // }
 }
-
 fn distf(a: PointF, b: PointF) -> f64 {
-    // a2 + b2 = c2
-    // c = sqrt(a2 + b2)
-    //use core::f64::{abs, sqrt, pow};
-    ((a.x - b.x).abs().powf(2f64) + (a.y - b.y).abs().powf(2f64)).sqrt()
+    // (                a2  +  b2                   ).sqrt()
+    ((a.x - b.x).powf(2f64) + (a.y - b.y).powf(2f64)).sqrt()
 }
-
 impl From<Point> for PointF {
     fn from(p: Point) -> PointF {
         PointF {
@@ -179,6 +130,7 @@ impl PointDisplay {
         let mut convergence = self.convergence_value();
         self.step_forward();
         let mut new = self.convergence_value();
+        if new == convergence { return; }
         if new < convergence {
             while new < convergence {
                 convergence = new;
@@ -192,9 +144,7 @@ impl PointDisplay {
                 new = self.convergence_value();
             }
         }
-        if new != convergence {
-            self.step_backward();
-        }
+        self.step_backward();
     }
 
     pub fn convergence_value(&self) -> f64 {
