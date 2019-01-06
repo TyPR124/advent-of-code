@@ -39,7 +39,8 @@ impl<T> From<std::sync::PoisonError<T>> for Error {
 impl_froms_for_error!(
     std::string::FromUtf8Error,
     std::num::ParseIntError,
-    std::option::NoneError
+    std::option::NoneError,
+    std::io::Error
 );
 #[macro_export]
 macro_rules! err {
