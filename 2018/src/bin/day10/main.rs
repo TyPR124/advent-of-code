@@ -10,7 +10,6 @@ use regex::Regex;
 #[macro_use] extern crate lazy_static;
 
 pub fn main() -> Result<()> {
-    //let file = OpenOptions::new().write(true).truncate(true).open("day10display.txt")?;
     let (text, ticks) = part1(INPUT)?;
     println!("Part1: Are stars aligned?\n\n{}\n", text);
     println!("Part2: It took {} seconds.", ticks);
@@ -39,7 +38,6 @@ fn part1(input: &str) -> Result<(String, usize)> {
         points.push(p);
         vel.push(v);
     }
-    //println!("Found {} points", points.len());
     let mut display = PointDisplay {
         points,
         vel,
