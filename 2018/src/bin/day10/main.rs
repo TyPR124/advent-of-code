@@ -15,8 +15,8 @@ pub fn main() -> Result<()> {
     println!("Part2: It took {} seconds.", ticks);
     Ok(())
 }
-// position=< 31129, -41131> velocity=<-3,  4>
-lazy_static! {
+
+lazy_static! { // position=< 31129, -41131> velocity=<-3,  4>
     static ref LineRegex: Regex = Regex::new("^position=<(?P<pos_x>[0-9- ]+),(?P<pos_y>[0-9- ]+)> velocity=<(?P<vel_x>[0-9- ]+),(?P<vel_y>[0-9- ]+)>$").unwrap();
 }
 
@@ -43,8 +43,6 @@ fn part1(input: &str) -> Result<(String, usize)> {
         vel,
         ticks: 0
     };
-    // Apparently, it takes two convergences to get the answer
-    display.to_convergence();
     display.to_convergence();
     Ok((display.text(), display.ticks))
 }
@@ -80,26 +78,10 @@ impl Rect {
             max
         }
     }
-    pub fn center(&self) -> PointF {
-        PointF{
-            x: (self.max.x - self.min.x) as f64 / 2f64,
-            y: (self.max.y - self.min.y) as f64 / 2f64,
-        }
+    pub fn area(&self) -> usize {
+        ((self.max.x - self.min.x) * (self.max.y - self.min.y)) as usize
     }
 }
-fn distf(a: PointF, b: PointF) -> f64 {
-    // (                a2  +  b2                   ).sqrt()
-    ((a.x - b.x).powf(2f64) + (a.y - b.y).powf(2f64)).sqrt()
-}
-impl From<Point> for PointF {
-    fn from(p: Point) -> PointF {
-        PointF {
-            x: p.x as f64,
-            y: p.y as f64,
-        }
-    }
-}
-
 struct PointDisplay {
     points: Vec<Point>,
     vel: Vec<Point>,
@@ -129,31 +111,26 @@ impl PointDisplay {
         self.step_forward();
         let mut new = self.convergence_value();
         if new == convergence { return; }
-        if new < convergence {
-            while new < convergence {
-                convergence = new;
-                self.step_forward();
-                new = self.convergence_value();
-            }
-        } else if new > convergence {
-            while new > convergence {
+        if new > convergence { // If getting farther apart
+            while new > convergence { // Go until not getting farther apart
                 convergence = new;
                 self.step_forward();
                 new = self.convergence_value();
             }
         }
+        if new < convergence { // Then, If getting closer
+            while new < convergence { // Keep going until not getting closer
+                convergence = new;
+                self.step_forward();
+                new = self.convergence_value();
+            }
+        }
+        // And then go back one
         self.step_backward();
     }
 
-    pub fn convergence_value(&self) -> f64 {
-        let mut sum = 0f64;
-        let rect = Rect::from_points(&self.points);
-        let center = rect.center();
-        self.points.iter().for_each(|p| {
-            sum += distf(center, (*p).into());
-        });
-
-        sum / self.points.len() as f64
+    pub fn convergence_value(&self) -> usize {
+        Rect::from_points(&self.points).area()
     }
 
     fn text(&self) -> String {
