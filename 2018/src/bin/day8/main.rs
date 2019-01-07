@@ -27,21 +27,13 @@ fn part2(input: &str) -> Result<usize> {
     let data: Vec<u8> = input.trim().split(" ").map(|s|
         s.parse().expect("Found invalid input")
     ).collect();
-    //let summ = summarize_node(&data);
-    //println!("Summarized len: {}\nData len: {}", summ.len, data.len());
-    //Ok(summ.value)
     Ok(summarize_node(&data).value)
 }
 
 fn summarize_node(data: &[u8]) -> NodeSummary {
     //println!("Summarizing node");
-    if data.len() < 2 {
-        panic!("Data len too short for header!")
-    }
-    let header = unsafe {
-        &*(data.as_ptr() as *const Header)
-    };
-    let mut len = 2; // Will be incremented as read from data
+    let header = Header::raw_ref(data);
+    let mut len = std::mem::size_of::<Header>(); // Will be incremented as read from data
     let mut value = 0;
     if header.child_count == 0 {
         //println!(" Node has no children");
@@ -89,49 +81,20 @@ struct MetadataIterator<'n> {
     i: usize, // Byte Index
 }
 
-// struct ValueIterator<'n> {
-//     data: &'n [u8], // Data that makes up node(s)
-//     header: &'n Header, // Will point to first two bytes of data
-//     ci: u8, // Child Index
-//     child: Option<Box<ValueIterator<'n>>>,
-//     i: usize, // Byte Index
-//     v: usize, // Value accumulator
-// }
-
-// impl<'n> ValueIterator<'n> {
-//     pub fn new(data: &'n [u8]) -> ValueIterator {
-//         if data.len() < std::mem::size_of::<Header>() {
-//             panic!("Data len too short for header!")
-//         }
-//         let header = unsafe {
-//             &*(data.as_ptr() as *const Header)
-//         };
-//         let child = if header.child_count == 0 {
-//             None
-//         } else {
-//             Some(Box::new(ValueIterator::new(&data[2..])))
-//         };
-//     }
-// }
-
 impl<'n> MetadataIterator<'n> {
     pub fn new(data: &'n [u8]) -> MetadataIterator {
-        if data.len() < std::mem::size_of::<Header>() {
-            panic!("Data len too short for header!")
-        }
-        let header = unsafe {
-            &*(data.as_ptr() as *const Header)
-        };
+        use std::mem::size_of;
+        let header = Header::raw_ref(data);
         let child = if header.child_count == 0 {
             None
         } else {
-            Some(Box::new(MetadataIterator::new(&data[2..])))
+            Some(Box::new(MetadataIterator::new( &data[ size_of::<Header>().. ]) ))
         };
 
         MetadataIterator {
             data,
             header,
-            i: 2, // Start after header
+            i: size_of::<Header>(), // Start after header
             ci: 0,
             mr: 0,
             child,
@@ -181,7 +144,19 @@ impl<'n> Iterator for MetadataIterator<'n> {
     }
 }
 
+#[repr(C)]
 struct Header {
     pub child_count: u8,
     pub metadata_count: u8,
+}
+
+impl Header {
+    pub fn raw_ref(data: &[u8]) -> &Header {
+        use std::mem::size_of;
+        if data.len() < size_of::<Header>() {
+            panic!("Data len too small for header!")
+        } else {
+            unsafe { &*(data.as_ptr() as *const Header) }
+        }
+    }
 }
