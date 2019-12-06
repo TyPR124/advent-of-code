@@ -11,7 +11,7 @@ fn main() {
 }
 
 fn part2(input: &str) -> String {
-    use std::iter::Iterator;
+    // use std::iter::Iterator;
     for (i, a) in input.lines().enumerate() {
         for b in input.lines().skip(i+1) {
             let (differ, pos) = differs_by_one(a, b);

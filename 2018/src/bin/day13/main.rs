@@ -61,14 +61,9 @@ fn main() -> Result<()> {
     //panic!("Stop here");
     let mut collisions = Vec::new();
     let mut tmp = CartUpdates::new();
-    let mut i = 0;
     let mut first = Point::default();
     let mut found_first = false;
     while carts.len() > 1 {
-        if i % 100 == 0 {
-            //println!("Tick: {}", i);
-        }
-        i += 1;
         tick(&mut carts, &turns, &mut collisions, &mut tmp);
         if !found_first && collisions.len() > 0 {
             first = *collisions.iter().min()?;
@@ -101,7 +96,7 @@ fn tick(carts: &mut Carts, turns: &Turns, collisions: &mut Vec<Point>, tmp: &mut
             // Check future carts first, then already-updated carts
             let mut collided = false;
             carts.iter().skip(i+1)
-                .filter(|(&p2, _)| p2 == new_point)
+                .filter(|(p2, _)| **p2 == new_point)
                 .take(1).for_each(|_| {
                     collisions.push(new_point);
                     collided = true;
