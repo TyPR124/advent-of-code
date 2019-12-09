@@ -5,12 +5,14 @@ use std::thread::{self, JoinHandle};
 pub enum Parameter {
     Position(usize),
     Value(isize),
+    Relative(isize),
 }
 impl Parameter {
-    fn value(self, mem: &[isize]) -> isize {
+    fn value(self, cpu: &mut Cpu) -> isize {
         match self {
-            Parameter::Position(idx) => mem[idx],
-            Parameter::Value(v) => v
+            Parameter::Position(idx) => *cpu.get_mem_or_extend(idx),
+            Parameter::Value(v) => v,
+            Parameter::Relative(offset) => *cpu.get_mem_or_extend((cpu.relative_base as isize + offset) as usize),
         }
     }
     // fn as_ref<'a>(&'a self, mem: &'a [isize]) -> &'a isize {
@@ -19,10 +21,11 @@ impl Parameter {
     //         Parameter::Value(v) => v
     //     }
     // }
-    fn as_mut<'a>(&'a mut self, mem: &'a mut [isize]) -> &'a mut isize {
+    fn as_mut<'a>(&'a mut self, cpu: &'a mut Cpu) -> &'a mut isize {
         match self {
-            Parameter::Position(idx) => &mut mem[*idx],
-            Parameter::Value(v) => v
+            Parameter::Position(idx) => cpu.get_mem_or_extend(*idx),
+            Parameter::Value(v) => v,
+            Parameter::Relative(offset) => cpu.get_mem_or_extend((cpu.relative_base as isize + *offset) as usize),
         }
     }
 }
@@ -36,6 +39,7 @@ pub enum Instruction {
     Jif(Parameter, Parameter),
     Lth(Parameter, Parameter, Parameter),
     Equ(Parameter, Parameter, Parameter),
+    Rbo(Parameter),
     Hlt,
 }
 impl Instruction {
@@ -50,6 +54,7 @@ impl Instruction {
             Jif(..) => 3,
             Lth(..) => 4,
             Equ(..) => 4,
+            Rbo(..) => 2,
             Hlt     => 1,
         }
     }
@@ -58,6 +63,7 @@ pub struct Cpu {
     mem: Vec<isize>,
     input: Receiver<isize>,
     output: SyncSender<isize>,
+    relative_base: usize,
     iptr: usize,
     hlt: bool,
 }
@@ -80,6 +86,7 @@ impl Cpu {
             mem,
             input: i_rx,
             output: o_tx,
+            relative_base: 0,
             iptr: 0,
             hlt: true
         };
@@ -116,6 +123,12 @@ impl Cpu {
     pub fn mem(&self) -> &[isize] {
         &self.mem
     }
+    fn get_mem_or_extend(&mut self, idx: usize) -> &mut isize {
+        if idx >= self.mem.len() {
+            self.mem.resize(idx + 1, 0);
+        }
+        &mut self.mem[idx]
+    }
     fn parse_instruction(&mut self) -> Result<Instruction, Error> {
         let full_op = self.instruction_offset(0)?;
         // println!("Parsing {}", full_op);
@@ -129,6 +142,7 @@ impl Cpu {
             match mode {
                 0 => Ok(Parameter::Position(this.instruction_offset(offset)? as usize)),
                 1 => Ok(Parameter::Value(this.instruction_offset(offset)?)),
+                2 => Ok(Parameter::Relative(this.instruction_offset(offset)?)),
                 _ => Err(Error::InvalidParameterMode(mode)),
             }
         };
@@ -142,6 +156,7 @@ impl Cpu {
             6 => Jif(param(self, 1)?, param(self, 2)?),
             7 => Lth(param(self, 1)?, param(self, 2)?, param(self, 3)?),
             8 => Equ(param(self, 1)?, param(self, 2)?, param(self, 3)?),
+            9 => Rbo(param(self, 1)?),
             99 => Hlt,
             _ => Err(Error::InvalidInstruction(op))?,
         };
@@ -156,14 +171,15 @@ impl Cpu {
         use Instruction::*;
         let mut next_iptr = None;
         match ix {
-            Add(a, b, mut out) => *out.as_mut(&mut self.mem) = a.value(&self.mem) + b.value(&self.mem),
-            Mlt(a, b, mut out) => *out.as_mut(&mut self.mem) = a.value(&self.mem) * b.value(&self.mem),
-            Inp(mut a) => *a.as_mut(&mut self.mem) = self.input.recv().ok().ok_or(Error::InputBroken)?,
-            Otp(a) => self.output.send(a.value(&self.mem)).ok().ok_or(Error::OutputBroken)?,
-            Jit(x, p) => if 0 != x.value(&self.mem) { next_iptr = Some(p.value(&self.mem) as usize) },
-            Jif(x, p) => if 0 == x.value(&self.mem) { next_iptr = Some(p.value(&self.mem) as usize) },
-            Lth(a, b, mut out) => *out.as_mut(&mut self.mem) = if a.value(&self.mem) < b.value(&self.mem) { 1 } else { 0 },
-            Equ(a, b, mut out) => *out.as_mut(&mut self.mem) = if a.value(&self.mem) == b.value(&self.mem) { 1 } else { 0 },
+            Add(a, b, mut out) => *out.as_mut(self) = a.value(self) + b.value(self),
+            Mlt(a, b, mut out) => *out.as_mut(self) = a.value(self) * b.value(self),
+            Inp(mut a) => *a.as_mut(self) = self.input.recv().ok().ok_or(Error::InputBroken)?,
+            Otp(a) => { let v = a.value(self); self.output.send(v).ok().ok_or(Error::OutputBroken)? },
+            Jit(x, p) => if 0 != x.value(self) { next_iptr = Some(p.value(self) as usize) },
+            Jif(x, p) => if 0 == x.value(self) { next_iptr = Some(p.value(self) as usize) },
+            Lth(a, b, mut out) => *out.as_mut(self) = if a.value(self) < b.value(self) { 1 } else { 0 },
+            Equ(a, b, mut out) => *out.as_mut(self) = if a.value(self) == b.value(self) { 1 } else { 0 },
+            Rbo(x) => self.relative_base = (self.relative_base as isize + x.value(self)) as usize,
             Hlt => self.hlt = true,
         }
         self.iptr = next_iptr.unwrap_or_else(||self.iptr + ix.len());
