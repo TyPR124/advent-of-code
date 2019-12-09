@@ -1,4 +1,5 @@
 use std::sync::mpsc::{self, SyncSender, Receiver};
+use std::thread::{self, JoinHandle};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Parameter {
@@ -101,6 +102,17 @@ impl Cpu {
         }
         Ok(())
     }
+    pub fn run_parallel(mut self) -> JoinHandle<Result<Self, Error>> {
+        thread::spawn(move|| {
+            self.run()?;
+            Ok(self)
+        })
+    }
+    pub fn run_parallel_and_drop(mut self) -> JoinHandle<Result<(), Error>> {
+        thread::spawn(move|| {
+            self.run()
+        })
+    }
     pub fn mem(&self) -> &[isize] {
         &self.mem
     }
@@ -159,9 +171,4 @@ impl Cpu {
 
         Ok(())
     }
-}
-
-#[test]
-fn test0() {
-
 }
