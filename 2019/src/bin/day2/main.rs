@@ -8,7 +8,7 @@ fn main() {
         .flat_map(usize::from_str)
         .collect();
 
-    let mut i = 0;
+    // let mut i = 0;
     let mut data = data0.clone();
     data[1] = 12;
     data[2] = 2;
@@ -48,8 +48,8 @@ fn run_program(data: &mut [usize]) {
 
 use aoc_2019::*;
 fn main2() {
-    let data0: Vec<isize> = INPUT.split(",")
-        .flat_map(isize::from_str)
+    let data0: Vec<i64> = INPUT.split(",")
+        .flat_map(i64::from_str)
         .collect();
     let mut data = data0.clone();
     data[1] = 12;
@@ -58,7 +58,7 @@ fn main2() {
     cpu.run().unwrap();
     println!("1. {}", cpu.mem()[0]);
 
-    const GOAL: isize = 19690720;
+    const GOAL: i64 = 19690720;
     'outer: for a in 0..=99 {
         for b in 0..=99 {
             let mut data = data0.clone();

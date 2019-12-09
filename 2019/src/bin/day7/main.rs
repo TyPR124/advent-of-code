@@ -12,7 +12,7 @@ fn main() {
 fn part1() {
     let mut remaining = vec![0, 1, 2, 3, 4];
     let mut phases = Vec::with_capacity(5);
-    let mut best = std::isize::MIN;
+    let mut best = std::i64::MIN;
     for i1 in 0..5 {
         phases.push(remaining.swap_remove(i1));
         for i2 in 0..4 {
@@ -51,10 +51,10 @@ fn part1() {
     println!("1. {}", best);
 }
 
-fn run_with(phases: &[isize]) -> isize {
+fn run_with(phases: &[i64]) -> i64 {
     assert_eq!(5, phases.len());
 
-    let mut signal = 0isize;
+    let mut signal = 0;
 
     phases.into_iter().copied().for_each(|p| {
         let (cpu, tx, rx) = Cpu::from_input(INPUT);
@@ -73,7 +73,7 @@ fn run_with(phases: &[isize]) -> isize {
 fn part2() {
     let mut remaining = vec![5, 6, 7, 8, 9];
     let mut phases = Vec::with_capacity(5);
-    let mut best = std::isize::MIN;
+    let mut best = std::i64::MIN;
     for i1 in 0..5 {
         phases.push(remaining.swap_remove(i1));
         for i2 in 0..4 {
@@ -112,7 +112,7 @@ fn part2() {
     println!("2. {}", best);
 }
 
-fn run_with_feedback(phases: &[isize]) -> isize {
+fn run_with_feedback(phases: &[i64]) -> i64 {
     // println!("Feedback with {:?}", phases);
 
     let (a, a_tx, a_rx) = Cpu::from_input(INPUT);

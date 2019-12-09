@@ -4,15 +4,15 @@ use std::thread::{self, JoinHandle};
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum Parameter {
     Position(usize),
-    Value(isize),
-    Relative(isize),
+    Value(i64),
+    Relative(i64),
 }
 impl Parameter {
-    fn value(self, cpu: &mut Cpu) -> isize {
+    fn value(self, cpu: &mut Cpu) -> i64 {
         match self {
             Parameter::Position(idx) => *cpu.get_mem_or_extend(idx),
             Parameter::Value(v) => v,
-            Parameter::Relative(offset) => *cpu.get_mem_or_extend((cpu.relative_base as isize + offset) as usize),
+            Parameter::Relative(offset) => *cpu.get_mem_or_extend((cpu.relative_base as i64 + offset) as usize),
         }
     }
     // fn as_ref<'a>(&'a self, mem: &'a [isize]) -> &'a isize {
@@ -21,11 +21,11 @@ impl Parameter {
     //         Parameter::Value(v) => v
     //     }
     // }
-    fn as_mut<'a>(&'a mut self, cpu: &'a mut Cpu) -> &'a mut isize {
+    fn as_mut<'a>(&'a mut self, cpu: &'a mut Cpu) -> &'a mut i64 {
         match self {
             Parameter::Position(idx) => cpu.get_mem_or_extend(*idx),
             Parameter::Value(v) => v,
-            Parameter::Relative(offset) => cpu.get_mem_or_extend((cpu.relative_base as isize + *offset) as usize),
+            Parameter::Relative(offset) => cpu.get_mem_or_extend((cpu.relative_base as i64 + *offset) as usize),
         }
     }
 }
@@ -60,9 +60,9 @@ impl Instruction {
     }
 }
 pub struct Cpu {
-    mem: Vec<isize>,
-    input: Receiver<isize>,
-    output: SyncSender<isize>,
+    mem: Vec<i64>,
+    input: Receiver<i64>,
+    output: SyncSender<i64>,
     relative_base: usize,
     iptr: usize,
     hlt: bool,
@@ -73,13 +73,13 @@ pub enum Error {
     InputBroken,
     OutputBroken,
     InstructionOverflow,
-    InvalidInstruction(isize),
-    InvalidParameterMode(usize),
+    InvalidInstruction(i64),
+    InvalidParameterMode(u64),
     _non_exhaustive,
 }
 
 impl Cpu {
-    pub fn new(mem: Vec<isize>) -> (Self, SyncSender<isize>, Receiver<isize>) {
+    pub fn new(mem: Vec<i64>) -> (Self, SyncSender<i64>, Receiver<i64>) {
         let (i_tx, i_rx) = mpsc::sync_channel(1024);
         let (o_tx, o_rx) = mpsc::sync_channel(1024);
         let ret = Self {
@@ -92,10 +92,10 @@ impl Cpu {
         };
         (ret, i_tx, o_rx)
     }
-    pub fn from_input(input: &str) -> (Self, SyncSender<isize>, Receiver<isize>) {
+    pub fn from_input(input: &str) -> (Self, SyncSender<i64>, Receiver<i64>) {
         use std::str::FromStr;
         let mem = input.lines().nth(0).unwrap().split(",")
-            .map(isize::from_str)
+            .map(i64::from_str)
             .map(Result::unwrap)
             .collect();
         Self::new(mem)
@@ -120,10 +120,10 @@ impl Cpu {
             self.run()
         })
     }
-    pub fn mem(&self) -> &[isize] {
+    pub fn mem(&self) -> &[i64] {
         &self.mem
     }
-    fn get_mem_or_extend(&mut self, idx: usize) -> &mut isize {
+    fn get_mem_or_extend(&mut self, idx: usize) -> &mut i64 {
         if idx >= self.mem.len() {
             self.mem.resize(idx + 1, 0);
         }
@@ -137,7 +137,7 @@ impl Cpu {
         let pmodes = &mut pmodes;
         let param: &mut dyn FnMut(&Cpu, usize) -> Result<Parameter, Error> =
         &mut move|this, offset| {
-            let mode = (*pmodes % 10) as usize;
+            let mode = (*pmodes % 10) as u64;
             *pmodes /= 10;
             match mode {
                 0 => Ok(Parameter::Position(this.instruction_offset(offset)? as usize)),
@@ -163,7 +163,7 @@ impl Cpu {
 
         Ok(ix)
     }
-    fn instruction_offset(&self, offset: usize) -> Result<isize, Error> {
+    fn instruction_offset(&self, offset: usize) -> Result<i64, Error> {
         self.mem.get(self.iptr + offset).copied().ok_or(Error::InstructionOverflow)
     }
     fn exec_instruction(&mut self, ix: Instruction) -> Result<(), Error> {
@@ -179,7 +179,7 @@ impl Cpu {
             Jif(x, p) => if 0 == x.value(self) { next_iptr = Some(p.value(self) as usize) },
             Lth(a, b, mut out) => *out.as_mut(self) = if a.value(self) < b.value(self) { 1 } else { 0 },
             Equ(a, b, mut out) => *out.as_mut(self) = if a.value(self) == b.value(self) { 1 } else { 0 },
-            Rbo(x) => self.relative_base = (self.relative_base as isize + x.value(self)) as usize,
+            Rbo(x) => self.relative_base = (self.relative_base as i64 + x.value(self)) as usize,
             Hlt => self.hlt = true,
         }
         self.iptr = next_iptr.unwrap_or_else(||self.iptr + ix.len());
