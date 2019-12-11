@@ -82,6 +82,7 @@ impl EmergencyHullPaintingRobot {
                 Ok(()) => {},
                 Err(_) => break
             }
+            // Recv new color
             let new_color = match self.rx.recv() {
                 Ok(0) => Color::Black,
                 Ok(1) => Color::White,
@@ -89,6 +90,7 @@ impl EmergencyHullPaintingRobot {
                 _ => unreachable!("Invalid color input")
             };
             self.painted.insert(self.location, new_color);
+            // Recv new direction
             match self.rx.recv().unwrap() {
                 0 => self.direction = self.direction.counter_clockwise(),
                 1 => self.direction = self.direction.clockwise(),

@@ -69,13 +69,12 @@ pub struct Cpu {
 }
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
 pub enum Error {
     InputBroken,
     OutputBroken,
-    InstructionOverflow,
     InvalidInstruction(i64),
     InvalidParameterMode(u64),
-    _non_exhaustive,
 }
 
 impl Cpu {
@@ -130,19 +129,19 @@ impl Cpu {
         &mut self.mem[idx]
     }
     fn parse_instruction(&mut self) -> Result<Instruction, Error> {
-        let full_op = self.instruction_offset(0)?;
+        let full_op = self.instruction_offset(0);
         // println!("Parsing {}", full_op);
         let op = full_op % 100;
         let mut pmodes = full_op / 100;
         let pmodes = &mut pmodes;
-        let param: &mut dyn FnMut(&Cpu, usize) -> Result<Parameter, Error> =
+        let param: &mut dyn FnMut(&mut Cpu, usize) -> Result<Parameter, Error> =
         &mut move|this, offset| {
             let mode = (*pmodes % 10) as u64;
             *pmodes /= 10;
             match mode {
-                0 => Ok(Parameter::Position(this.instruction_offset(offset)? as usize)),
-                1 => Ok(Parameter::Value(this.instruction_offset(offset)?)),
-                2 => Ok(Parameter::Relative(this.instruction_offset(offset)?)),
+                0 => Ok(Parameter::Position(this.instruction_offset(offset) as usize)),
+                1 => Ok(Parameter::Value(this.instruction_offset(offset))),
+                2 => Ok(Parameter::Relative(this.instruction_offset(offset))),
                 _ => Err(Error::InvalidParameterMode(mode)),
             }
         };
@@ -163,8 +162,8 @@ impl Cpu {
 
         Ok(ix)
     }
-    fn instruction_offset(&self, offset: usize) -> Result<i64, Error> {
-        self.mem.get(self.iptr + offset).copied().ok_or(Error::InstructionOverflow)
+    fn instruction_offset(&mut self, offset: usize) -> i64 {
+        *self.get_mem_or_extend(self.iptr + offset)
     }
     fn exec_instruction(&mut self, ix: Instruction) -> Result<(), Error> {
         // println!("Executing: {:?}", ix);
