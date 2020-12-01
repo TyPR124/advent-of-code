@@ -65,14 +65,14 @@ fn main() -> Result<()> {
     let mut found_first = false;
     while carts.len() > 1 {
         tick(&mut carts, &turns, &mut collisions, &mut tmp);
-        if !found_first && collisions.len() > 0 {
+        if !found_first && !collisions.is_empty() {
             first = *collisions.iter().min()?;
             found_first = true;
         }
     }
 
     println!("Part1: {}", first);
-    println!("Part2: {}", carts.iter().nth(0)?.0);
+    println!("Part2: {}", carts.iter().next()?.0);
 
     Ok(())
 }

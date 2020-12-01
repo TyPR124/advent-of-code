@@ -73,9 +73,9 @@ impl Plants {
         self.data.iter().enumerate().filter( |(_, &v)| v )
             .map( |(i, _)| i as isize + self.offset ).sum()
     }
-    fn step_cloned(&mut self, rules: &Vec<Rule>, tmp: &mut Vec<bool>) -> Plants {
+    fn step_cloned(&mut self, rules: &[Rule], tmp: &mut Vec<bool>) -> Plants {
         //println!("Stepping...");
-        if self.data.len() == 0 { return self.clone() }
+        if self.data.is_empty() { return self.clone() }
         let lo_hi = [false; 4];
         //let len = lo_buf.len() + hi_buf.len() + self.data.len();
         let old = lo_hi.iter().chain(self.data.iter()).chain(lo_hi.iter());
@@ -111,7 +111,7 @@ impl Plants {
                 if found_first {
                     new.data.push(set[2]);
                 } else { // Is this the first?
-                    if set[2] == true {
+                    if set[2] {
                         found_first = true;
                         new.data.push(true);
                     } else {
@@ -121,9 +121,9 @@ impl Plants {
             }
         }); // set in windows
 
-        if new.data.len() > 0 {
+        if !new.data.is_empty() {
             let mut i = 1;
-            while new.data[new.data.len()-i] == false {
+            while !new.data[new.data.len()-i] {
                 i += 1
             }
             new.data.truncate(new.data.len()-(i-1));
@@ -140,7 +140,7 @@ struct Rule {
 
 impl Rule {
     pub fn matches(&self, data: &[bool]) -> bool {
-        &self.mval == data
+        self.mval == data
     }
     pub fn result(&self) -> bool {
         !self.mval[2]

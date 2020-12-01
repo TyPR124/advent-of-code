@@ -44,6 +44,7 @@ fn main() {
         assert!(angle >= 0f64);
         let dist = (station.y as f64 - p.y as f64).hypot(station.x as f64 - p.x as f64);
         for i in 0..by_angle.len() {
+            #[allow(clippy::float_cmp)]
             if angle == by_angle[i].0 {
                 for j in 0..by_angle[i].1.len() {
                     if dist > by_angle[i].1[j].0 {

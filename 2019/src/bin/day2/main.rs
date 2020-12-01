@@ -4,7 +4,7 @@ use input::INPUT;
 use std::str::FromStr;
 
 fn main() {
-    let data0: Vec<usize> = INPUT.split(",")
+    let data0: Vec<usize> = INPUT.split(',')
         .flat_map(usize::from_str)
         .collect();
 
@@ -48,7 +48,7 @@ fn run_program(data: &mut [usize]) {
 
 use aoc_2019::*;
 fn main2() {
-    let data0: Vec<i64> = INPUT.split(",")
+    let data0: Vec<i64> = INPUT.split(',')
         .flat_map(i64::from_str)
         .collect();
     let mut data = data0.clone();

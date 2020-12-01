@@ -10,12 +10,13 @@ fn main() {
 
 fn is_valid1(x: &u64) -> bool {
     let x = *x;
-    if x < LO || x > HI { return false }
+    if !(LO..=HI).contains(&x) { return false }
     let mut have_pair = false;
     let mut last_digit = 0;
 
     for i in (0..=5).rev() {
         let digit = (x / (10u64.pow(i))) % 10;
+        #[allow(clippy::comparison_chain)]
         if digit == last_digit { have_pair = true }
         else if digit < last_digit { return false }
         else { last_digit = digit }
@@ -25,7 +26,7 @@ fn is_valid1(x: &u64) -> bool {
 
 fn is_valid2(x: &u64) -> bool {
     let x = *x;
-    if x < LO || x > HI { return false }
+    if !(LO..=HI).contains(&x) { return false }
 
     let mut counts = [0; 10];
     let mut last_digit = 0;
@@ -36,7 +37,7 @@ fn is_valid2(x: &u64) -> bool {
         counts[digit as usize] += 1;
         last_digit = digit;
     }
-
+    #[allow(clippy::needless_range_loop)]
     for i in 0..=9 {
         if counts[i] == 2 { return true }
     }

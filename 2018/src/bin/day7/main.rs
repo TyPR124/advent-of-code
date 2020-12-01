@@ -16,7 +16,7 @@ use std::collections::{BTreeSet, BTreeMap};
 
 
 lazy_static! {
-    static ref LineRegex: Regex = Regex::new(REGEX_STR).expect("Failed to init lazy_static Regex");
+    static ref LINE_REGEX: Regex = Regex::new(REGEX_STR).expect("Failed to init lazy_static Regex");
 }
 
 fn main() -> Result<()> {
@@ -32,9 +32,9 @@ fn main() -> Result<()> {
 fn part1(input: &str) -> Result<String> {
     type DepMap = BTreeMap<u8, BTreeSet<u8>>;
     fn step(dep_map: &mut DepMap) -> Result<u8> {
+        // #[allow(clippy::clippy::skip_while_next)]
         let (&next, _) = dep_map.iter()
-            .skip_while(|(_,needs)| needs.len() > 0)
-            .nth(0).expect("Couldn't find empty needs");
+            .find(|(_,needs)| needs.is_empty()).expect("Couldn't find empty needs");
         dep_map.remove(&next);
         dep_map.iter_mut().for_each(|(_, needs)| {
             needs.remove(&next);
@@ -46,13 +46,13 @@ fn part1(input: &str) -> Result<String> {
         dep_map.insert(node, Default::default());
     }
     for line in input.trim().lines() {
-        let caps = LineRegex.captures(line)?;
+        let caps = LINE_REGEX.captures(line)?;
         let node = caps.name("node")?.as_str().as_bytes()[0];
         let need = caps.name("need")?.as_str().as_bytes()[0];
         dep_map.entry(node).or_default().insert(need);
     }
     let mut out = String::with_capacity(26);
-    while dep_map.len() > 0 {
+    while !dep_map.is_empty() {
         out.push(step(&mut dep_map)? as char);
     }
     Ok(out)
@@ -76,11 +76,7 @@ fn part2(input: &str, worker_count: usize) -> Result<usize> {
     }
     impl Worker {
         fn is_working(&self) -> bool {
-            if let Worker::Working(_, _) = self {
-                true
-            } else {
-                false
-            }
+            matches!(self, Worker::Working(_, _))
         }
     }
 
@@ -109,7 +105,7 @@ fn part2(input: &str, worker_count: usize) -> Result<usize> {
         dep_map.insert(node, Default::default());
     }
     for line in input.trim().lines() {
-        let caps = LineRegex.captures(line)?;
+        let caps = LINE_REGEX.captures(line)?;
         let node = caps.name("node")?.as_str().as_bytes()[0];
         let need = caps.name("need")?.as_str().as_bytes()[0];
         dep_map.entry(node).and_modify(|status| {
@@ -130,7 +126,7 @@ fn part2(input: &str, worker_count: usize) -> Result<usize> {
         workers.push(Worker::Free);
     }
     let mut todo = Vec::with_capacity(worker_count);
-    while dep_map.len() > 0 {
+    while !dep_map.is_empty() {
         //print!("At t = {}", seconds_passed);
         seconds_passed += tick(&mut dep_map, &mut workers, &mut todo)?;
     }
@@ -159,7 +155,7 @@ fn part2(input: &str, worker_count: usize) -> Result<usize> {
                         dep_map.iter_mut().for_each( |(_, status)| {
                             if let Status::HaveNeeds(needs) = status {
                                 needs.remove(node);
-                                if needs.len() == 0 {
+                                if needs.is_empty() {
                                     *status = Status::CanDo;
                                 }
                             }
@@ -180,7 +176,7 @@ fn part2(input: &str, worker_count: usize) -> Result<usize> {
                 let node = todo.pop().unwrap();
                 *w = Worker::Working(node, time_required(node));
             });
-        if dep_map.len() == 0 {
+        if dep_map.is_empty() {
             let final_time = workers.iter().map(|w| {
                 if let Worker::Working(_, t) = w {
                     *t

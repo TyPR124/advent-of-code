@@ -13,7 +13,7 @@ fn main() -> Result<()> {
 }
 
 fn part1(input: &str) -> Result<usize> {
-    let data: Vec<u8> = input.trim().split(" ").map(|s| s.parse().expect("Found invalid input")).collect();
+    let data: Vec<u8> = input.trim().split(' ').map(|s| s.parse().expect("Found invalid input")).collect();
     let iter = MetadataIterator::new(&data);
     Ok(iter.map(|x| x as usize).sum())
 }
@@ -24,7 +24,7 @@ struct NodeSummary {
 }
 
 fn part2(input: &str) -> Result<usize> {
-    let data: Vec<u8> = input.trim().split(" ").map(|s|
+    let data: Vec<u8> = input.trim().split(' ').map(|s|
         s.parse().expect("Found invalid input")
     ).collect();
     Ok(summarize_node(&data).value)

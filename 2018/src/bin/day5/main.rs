@@ -16,7 +16,7 @@ fn part1(input: &str) -> usize {
     let input = input.trim().as_bytes();
     let mut new = Vec::<u8>::with_capacity(input.len());
     input.iter().for_each(|b| {
-        if new.len() == 0 {
+        if new.is_empty() {
             new.push(*b);
         } else if is_match(new[new.len()-1], *b) {
             new.pop();
@@ -36,7 +36,7 @@ fn part2(input: &str) -> Result<usize> {
     }
     input.iter().for_each(|b| {
         all.iter_mut().filter(|kv| *kv.0 != b.to_ascii_uppercase()).for_each(|kv| {
-            if kv.1.len() == 0 {
+            if kv.1.is_empty() {
                 kv.1.push(*b);
             } else if is_match(kv.1[kv.1.len()-1], *b) {
                 kv.1.pop();

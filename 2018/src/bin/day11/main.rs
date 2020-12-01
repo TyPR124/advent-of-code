@@ -104,7 +104,7 @@ impl Grid {
     }
     pub fn query(&mut self, p: Point) -> isize {
         let serial = self.serial;
-        *self.cells.entry(p).or_insert(power_level(p,serial))
+        *self.cells.entry(p).or_insert_with(||power_level(p,serial))
     }
     pub fn query_square(&mut self, s: Square) -> isize {
         if s.size == 0 {
@@ -139,6 +139,7 @@ impl Grid {
 }
 
 fn power_level(p: Point, serial: usize) -> isize {
+    #![allow(clippy::let_and_return)]
     let x = p.x as usize;
     let y = p.y as usize;
     let rack_id = x + 10;
@@ -198,6 +199,7 @@ impl SquaresBuilder {
 }
 
 impl Squares {
+    #![allow(clippy::clippy::new_ret_no_self)]
     pub fn new() -> SquaresBuilder {
         SquaresBuilder {
             inner: Squares::default()

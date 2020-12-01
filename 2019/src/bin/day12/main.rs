@@ -72,18 +72,18 @@ fn step(moons: &mut [Moon]) {
 
 fn parse_moons(input: &str) -> Vec<Moon> {
     input.trim().lines().map(|line| {
-        let x_s = line.find("=").unwrap() + 1;
-        let x_e = line.find(",").unwrap();
+        let x_s = line.find('=').unwrap() + 1;
+        let x_e = line.find(',').unwrap();
         let x = isize::from_str(&line[x_s..x_e]).unwrap();
         let line = &line[x_e+1..];
 
-        let y_s = line.find("=").unwrap() + 1;
-        let y_e = line.find(",").unwrap();
+        let y_s = line.find('=').unwrap() + 1;
+        let y_e = line.find(',').unwrap();
         let y = isize::from_str(&line[y_s..y_e]).unwrap();
         let line = &line[y_e+1..];
 
-        let z_s = line.find("=").unwrap() + 1;
-        let z_e = line.find(">").unwrap();
+        let z_s = line.find('=').unwrap() + 1;
+        let z_e = line.find('>').unwrap();
         let z = isize::from_str(&line[z_s..z_e]).unwrap();
         
         Moon {

@@ -42,6 +42,7 @@ pub enum Instruction {
     Rbo(Parameter),
     Hlt,
 }
+#[allow(clippy::len_without_is_empty)]
 impl Instruction {
     pub fn len(&self) -> usize {
         use Instruction::*;
@@ -93,7 +94,7 @@ impl Cpu {
     }
     pub fn from_input(input: &str) -> (Self, SyncSender<i64>, Receiver<i64>) {
         use std::str::FromStr;
-        let mem = input.lines().nth(0).unwrap().split(",")
+        let mem = input.lines().next().unwrap().split(',')
             .map(i64::from_str)
             .map(Result::unwrap)
             .collect();
@@ -157,7 +158,7 @@ impl Cpu {
             8 => Equ(param(self, 1)?, param(self, 2)?, param(self, 3)?),
             9 => Rbo(param(self, 1)?),
             99 => Hlt,
-            _ => Err(Error::InvalidInstruction(op))?,
+            _ => return Err(Error::InvalidInstruction(op)),
         };
 
         Ok(ix)
@@ -167,19 +168,18 @@ impl Cpu {
     }
     fn exec_instruction(&mut self, ix: Instruction) -> Result<(), Error> {
         // println!("Executing: {:?}", ix);
-        use Instruction::*;
         let mut next_iptr = None;
         match ix {
-            Add(a, b, mut out) => *out.as_mut(self) = a.value(self) + b.value(self),
-            Mlt(a, b, mut out) => *out.as_mut(self) = a.value(self) * b.value(self),
-            Inp(mut a) => *a.as_mut(self) = self.input.recv().ok().ok_or(Error::InputBroken)?,
-            Otp(a) => { let v = a.value(self); self.output.send(v).ok().ok_or(Error::OutputBroken)? },
-            Jit(x, p) => if 0 != x.value(self) { next_iptr = Some(p.value(self) as usize) },
-            Jif(x, p) => if 0 == x.value(self) { next_iptr = Some(p.value(self) as usize) },
-            Lth(a, b, mut out) => *out.as_mut(self) = if a.value(self) < b.value(self) { 1 } else { 0 },
-            Equ(a, b, mut out) => *out.as_mut(self) = if a.value(self) == b.value(self) { 1 } else { 0 },
-            Rbo(x) => self.relative_base = (self.relative_base as i64 + x.value(self)) as usize,
-            Hlt => self.hlt = true,
+            Instruction::Add(a, b, mut out) => *out.as_mut(self) = a.value(self) + b.value(self),
+            Instruction::Mlt(a, b, mut out) => *out.as_mut(self) = a.value(self) * b.value(self),
+            Instruction::Inp(mut a) => *a.as_mut(self) = self.input.recv().ok().ok_or(Error::InputBroken)?,
+            Instruction::Otp(a) => { let v = a.value(self); self.output.send(v).ok().ok_or(Error::OutputBroken)? },
+            Instruction::Jit(x, p) => if 0 != x.value(self) { next_iptr = Some(p.value(self) as usize) },
+            Instruction::Jif(x, p) => if 0 == x.value(self) { next_iptr = Some(p.value(self) as usize) },
+            Instruction::Lth(a, b, mut out) => *out.as_mut(self) = if a.value(self) < b.value(self) { 1 } else { 0 },
+            Instruction::Equ(a, b, mut out) => *out.as_mut(self) = if a.value(self) == b.value(self) { 1 } else { 0 },
+            Instruction::Rbo(x) => self.relative_base = (self.relative_base as i64 + x.value(self)) as usize,
+            Instruction::Hlt => self.hlt = true,
         }
         self.iptr = next_iptr.unwrap_or_else(||self.iptr + ix.len());
         // println!("Instruction ptr: {}", self.iptr);

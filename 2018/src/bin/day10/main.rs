@@ -17,7 +17,7 @@ pub fn main() -> Result<()> {
 }
 
 lazy_static! { // position=< 31129, -41131> velocity=<-3,  4>
-    static ref LineRegex: Regex = Regex::new("^position=<(?P<pos_x>[0-9- ]+),(?P<pos_y>[0-9- ]+)> velocity=<(?P<vel_x>[0-9- ]+),(?P<vel_y>[0-9- ]+)>$").unwrap();
+    static ref LINE_REGEX: Regex = Regex::new("^position=<(?P<pos_x>[0-9- ]+),(?P<pos_y>[0-9- ]+)> velocity=<(?P<vel_x>[0-9- ]+),(?P<vel_y>[0-9- ]+)>$").unwrap();
 }
 
 fn part1(input: &str) -> Result<(String, usize)> {
@@ -26,7 +26,7 @@ fn part1(input: &str) -> Result<(String, usize)> {
     let mut vel = Vec::new();
 
     for line in input.lines() {
-        let caps = LineRegex.captures(line.trim()).expect("No line captures!");
+        let caps = LINE_REGEX.captures(line.trim()).expect("No line captures!");
         let p = Point {
             x: caps.name("pos_x").expect("No pos_x").as_str().trim().parse()?,
             y: caps.name("pos_y").expect("No pos_y").as_str().trim().parse()?,
@@ -105,7 +105,7 @@ impl PointDisplay {
         });
         self.ticks -= 1;
     }
-
+    #[allow(clippy::clippy::wrong_self_convention)]
     pub fn to_convergence(&mut self) {
         let mut convergence = self.convergence_value();
         self.step_forward();

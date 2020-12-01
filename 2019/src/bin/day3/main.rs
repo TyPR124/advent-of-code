@@ -19,7 +19,7 @@ fn main() {
     let mut set1 = HashMap::new();
     let mut position = Point::new(0, 0);
     let mut steps: usize = 0;
-    INPUT.lines().nth(0).unwrap().split(",").for_each(|m| {
+    INPUT.lines().next().unwrap().split(',').for_each(|m| {
         let dist = i64::from_str(&m[1..]).unwrap();
         match &m[0..1] {
             "L" => {
@@ -57,7 +57,7 @@ fn main() {
     let mut best_dist = std::i64::MAX;
     let mut best_steps = std::usize::MAX;
     steps = 0;
-    INPUT.lines().nth(1).unwrap().split(",").for_each(|m| {
+    INPUT.lines().nth(1).unwrap().split(',').for_each(|m| {
         let dist = i64::from_str(&m[1..]).unwrap();
         match &m[0..1] {
             "L" => {

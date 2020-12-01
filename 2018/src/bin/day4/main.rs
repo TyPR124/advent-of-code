@@ -8,7 +8,7 @@ use regex::Regex;
 use std::cmp::Ordering;
 use std::str::FromStr;
 
-type Error = Box<std::error::Error>;
+type Error = Box<dyn std::error::Error>;
 type Result<T> = std::result::Result<T, Error>;
 
 fn main() -> Result<()> {
@@ -39,6 +39,7 @@ fn part1_and_part2(input: &str) -> Result<(u64, u64)> {
             Detail::GuardAwake => {
                 let sleep_range = Range {start: asleep_since, end: e.date.minute};
                 total_sleep.entry(current_guard).or_insert(0).add_assign(sleep_range.end - sleep_range.start);
+                #[allow(clippy::clippy::or_fun_call)]
                 sleep_times.entry(current_guard).or_insert(Vec::new()).push(sleep_range);
             }
         }
@@ -115,10 +116,10 @@ impl FromStr for Entry {
     type Err = Error;
     fn from_str(s: &str) -> Result<Entry> {
         lazy_static! {
-            static ref entry_regex: Regex = Regex::new(r#"^\[([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+)\] (.+)$"#).unwrap();
+            static ref ENTRY_REGEX: Regex = Regex::new(r#"^\[([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+)\] (.+)$"#).unwrap();
         }
 
-        if let Some(caps) = entry_regex.captures(s) {
+        if let Some(caps) = ENTRY_REGEX.captures(s) {
             Ok(Entry{
                 date: DateTime{
                     year: caps[1].parse()?,
@@ -146,9 +147,9 @@ impl FromStr for Detail {
     type Err = Error;
     fn from_str(s: &str) -> Result<Detail> {
         lazy_static! {
-            static ref newguard_regex: Regex = Regex::new(r#"^Guard #([0-9]+) begins shift$"#).unwrap();
+            static ref NEWGUARD_REGEX: Regex = Regex::new(r#"^Guard #([0-9]+) begins shift$"#).unwrap();
         }
-        if let Some(caps) = newguard_regex.captures(s) {
+        if let Some(caps) = NEWGUARD_REGEX.captures(s) {
             Ok(Detail::NewGuard(caps[1].parse()?))
         } else { match s {
             "wakes up" => Ok(Detail::GuardAwake),

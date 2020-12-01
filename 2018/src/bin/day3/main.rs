@@ -36,7 +36,7 @@ fn part2(input: &str) -> u64 {
 
     if claims.enumerate().try_for_each( |(i, a)|
         if claims.enumerate().filter( |(j, _)| *j != i ).try_for_each( |(_, b)|
-            if overlapping_points(&a.rect, &b.rect).len() != 0 {
+            if !overlapping_points(&a.rect, &b.rect).is_empty() {
                 Err(OverlapError)
             } else { Ok(()) }
         ).is_ok() { // This a never overlapped with a b
@@ -52,6 +52,7 @@ fn part2(input: &str) -> u64 {
     }
 }
 
+#[allow(clippy::if_same_then_else)]
 fn overlapping_points(a: &Rect, b: &Rect) -> Vec<Point> {
     if a == b { // Same rect
         a.all_points()
@@ -142,12 +143,12 @@ impl FromStr for Claims {
 }
 
 lazy_static!{
-    static ref claim_regex: Regex = Regex::new(r"^#(?P<id>[0-9]+) @ (?P<origin_x>[0-9]+),(?P<origin_y>[0-9]+): (?P<size_x>[0-9]+)x(?P<size_y>[0-9]+)$").unwrap();
+    static ref CLAIM_REGEX: Regex = Regex::new(r"^#(?P<id>[0-9]+) @ (?P<origin_x>[0-9]+),(?P<origin_y>[0-9]+): (?P<size_x>[0-9]+)x(?P<size_y>[0-9]+)$").unwrap();
 }
 impl FromStr for Claim {
     type Err = Error;
     fn from_str(s: &str) -> Result<Claim, Self::Err> {
-        if let Some(caps) = claim_regex.captures(s) {
+        if let Some(caps) = CLAIM_REGEX.captures(s) {
             Ok(Claim {
                 id: caps.name("id").unwrap()
                     .as_str().parse()?,

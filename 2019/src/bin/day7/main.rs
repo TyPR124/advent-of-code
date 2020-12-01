@@ -56,7 +56,7 @@ fn run_with(phases: &[i64]) -> i64 {
 
     let mut signal = 0;
 
-    phases.into_iter().copied().for_each(|p| {
+    phases.iter().copied().for_each(|p| {
         let (cpu, tx, rx) = Cpu::from_input(INPUT);
         let handle = cpu.run_parallel();
         tx.send(p).unwrap();
@@ -114,7 +114,7 @@ fn part2() {
 
 fn run_with_feedback(phases: &[i64]) -> i64 {
     // println!("Feedback with {:?}", phases);
-
+    #![allow(clippy::clippy::many_single_char_names)]
     let (a, a_tx, a_rx) = Cpu::from_input(INPUT);
     let (b, b_tx, b_rx) = Cpu::from_input(INPUT);
     let (c, c_tx, c_rx) = Cpu::from_input(INPUT);
@@ -137,7 +137,7 @@ fn run_with_feedback(phases: &[i64]) -> i64 {
     let mut last_signal = 0;
 
     loop {
-        if !a_tx.send(last_signal).is_ok() { break }
+        if a_tx.send(last_signal).is_err() { break }
         // println!("Sent to a");
         b_tx.send(a_rx.recv().unwrap()).unwrap();
         // println!("Sent to b");

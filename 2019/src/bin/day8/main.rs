@@ -33,7 +33,7 @@ fn main() {
 
     let mut img = layers[0];
     img.iter_mut().enumerate().filter(|(_i, x)| **x == 2).for_each(|(i, x)| {
-        *x = layers.iter().filter(|layer| layer[i] != 2).nth(0).unwrap()[i]
+        *x = layers.iter().find(|layer| layer[i] != 2).unwrap()[i]
     });
 
     println!("2. Image:");

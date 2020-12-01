@@ -44,7 +44,7 @@ pub fn main() -> Result<()> {
 fn distance(p1: &Point, p2: &Point) -> usize {
     fn abs(i: isize) -> isize {
         if i < 0 {
-            i * -1
+            -i
         } else {
             i
         }
@@ -55,7 +55,7 @@ fn distance(p1: &Point, p2: &Point) -> usize {
     xd + yd
 }
 
-fn part1(points: &Vec<Point>, bounds: Bounds) -> Result<usize> {
+fn part1(points: &[Point], bounds: Bounds) -> Result<usize> {
     use std::sync::Mutex;
     let results = Mutex::new(HashMap::<usize, usize>::new());
     let disq = Mutex::new(HashSet::<usize>::new());
@@ -66,6 +66,7 @@ fn part1(points: &Vec<Point>, bounds: Bounds) -> Result<usize> {
         let mut winner = 0;
         points.iter().enumerate().for_each(|(i, o)| { // o because it's a potential owner
             let r_o = distance(&r, &o);
+            #[allow(clippy::clippy::comparison_chain)]
             if r_o < min {
                 min = r_o;
                 winner = i;
@@ -91,11 +92,11 @@ fn part1(points: &Vec<Point>, bounds: Bounds) -> Result<usize> {
     let results = results.into_inner()?;
     let disq = disq.into_inner()?;
 
-    Ok(results.iter().filter(|kv| {
+    Ok(*results.iter().filter(|kv| {
         !disq.contains(kv.0)
-    }).map(|kv| kv.1).max()?.clone())
+    }).map(|kv| kv.1).max()?)
 }
-fn part2(points: &Vec<Point>, bounds: Bounds) -> Result<usize> {
+fn part2(points: &[Point], bounds: Bounds) -> Result<usize> {
     Ok(bounds.all_points().par_iter().map(|r| {
         let mut r_total = 0;
         points.iter().for_each(|p| { r_total += distance(&p, &r) });
