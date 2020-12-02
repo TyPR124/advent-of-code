@@ -37,7 +37,7 @@ fn part2(input: &str) -> u64 {
     struct OverlapError;
     #[derive(Debug)]
     struct DoneError;
-
+    #[allow(clippy::clippy::blocks_in_if_conditions)]
     if claims
         .enumerate()
         .try_for_each(|(i, a)| {
