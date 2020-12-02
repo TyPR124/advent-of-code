@@ -6,7 +6,7 @@ use std::f64::consts::PI;
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Hash)]
 struct Point {
     x: usize,
-    y: usize
+    y: usize,
 }
 
 fn main() {
@@ -16,31 +16,45 @@ fn main() {
     for (y, line) in INPUT.trim().lines().enumerate() {
         for (x, b) in line.bytes().enumerate() {
             let point_count = points.len();
-            if b == b'.' { continue }
+            if b == b'.' {
+                continue;
+            }
             points.push(Point { x, y });
             let mut point_angles = Vec::new();
             for i in 0..point_count {
                 let angle = (y as f64 - points[i].y as f64).atan2(x as f64 - points[i].x as f64);
                 let opp_angle = if angle > 0f64 { angle - PI } else { angle + PI };
-                if !point_angles.contains(&angle) { point_angles.push(angle) }
-                if !angles[i].contains(&opp_angle) { angles[i].push(opp_angle) }
+                if !point_angles.contains(&angle) {
+                    point_angles.push(angle)
+                }
+                if !angles[i].contains(&opp_angle) {
+                    angles[i].push(opp_angle)
+                }
             }
             angles.push(point_angles);
         }
     }
-    let (station_idx, unique_angles) = angles.iter().map(Vec::len).enumerate().max_by_key(|(_i, len)| *len).unwrap();
+    let (station_idx, unique_angles) = angles
+        .iter()
+        .map(Vec::len)
+        .enumerate()
+        .max_by_key(|(_i, len)| *len)
+        .unwrap();
     println!("1. {}", unique_angles);
 
     let station = points.swap_remove(station_idx);
 
     // println!("Station at {}, {}", station.x, station.y);
-    
-    let mut by_angle = Vec::<(f64, Vec::<(f64, Point)>)>::new();
 
-    'adding_points:
-    for p in points {
+    let mut by_angle = Vec::<(f64, Vec<(f64, Point)>)>::new();
+
+    'adding_points: for p in points {
         let angle = (station.y as f64 - p.y as f64).atan2(station.x as f64 - p.x as f64);
-        let angle = if angle < PI/2f64 { angle + 2f64*PI } else { angle };
+        let angle = if angle < PI / 2f64 {
+            angle + 2f64 * PI
+        } else {
+            angle
+        };
         assert!(angle >= 0f64);
         let dist = (station.y as f64 - p.y as f64).hypot(station.x as f64 - p.x as f64);
         for i in 0..by_angle.len() {
@@ -78,8 +92,9 @@ fn main() {
         } else {
             cycle_idx += 1;
         }
-        if cycle_idx == by_angle.len() { cycle_idx = 0 };
-
+        if cycle_idx == by_angle.len() {
+            cycle_idx = 0
+        };
     }
 
     println!("2. {}", last_point.x * 100 + last_point.y);

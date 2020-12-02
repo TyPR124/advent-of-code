@@ -4,12 +4,14 @@ use input::INPUT;
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 struct TPoint<T> {
     x: T,
-    y: T
+    y: T,
 }
 
 type Point = TPoint<i64>;
 impl<T> TPoint<T> {
-    fn new(x: T, y: T) -> Self { Self { x, y }}
+    fn new(x: T, y: T) -> Self {
+        Self { x, y }
+    }
 }
 
 use std::collections::HashMap;
@@ -23,34 +25,34 @@ fn main() {
         let dist = i64::from_str(&m[1..]).unwrap();
         match &m[0..1] {
             "L" => {
-                for x in (position.x - dist) .. position.x {
+                for x in (position.x - dist)..position.x {
                     steps += 1;
                     set1.entry(Point::new(x, position.y)).or_insert(steps);
                 }
                 position.x -= dist;
             }
             "R" => {
-                for x in (position.x + 1) ..= (position.x + dist) {
+                for x in (position.x + 1)..=(position.x + dist) {
                     steps += 1;
                     set1.entry(Point::new(x, position.y)).or_insert(steps);
                 }
                 position.x += dist;
             }
             "U" => {
-                for y in (position.y - dist) .. position.y {
+                for y in (position.y - dist)..position.y {
                     steps += 1;
                     set1.entry(Point::new(position.x, y)).or_insert(steps);
                 }
                 position.y -= dist;
             }
             "D" => {
-                for y in (position.y + 1) ..= (position.y + dist) {
+                for y in (position.y + 1)..=(position.y + dist) {
                     steps += 1;
                     set1.entry(Point::new(position.x, y)).or_insert(steps);
                 }
                 position.y += dist;
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     });
     position = Point::new(0, 0);
@@ -61,54 +63,70 @@ fn main() {
         let dist = i64::from_str(&m[1..]).unwrap();
         match &m[0..1] {
             "L" => {
-                for x in (position.x - dist) .. position.x {
+                for x in (position.x - dist)..position.x {
                     steps += 1;
                     if let Some(steps1) = set1.get(&Point::new(x, position.y)) {
                         let dist_from_origin = x.abs() + position.y.abs();
-                        if dist_from_origin < best_dist { best_dist = dist_from_origin }
+                        if dist_from_origin < best_dist {
+                            best_dist = dist_from_origin
+                        }
                         let combined_steps = steps + steps1;
-                        if combined_steps < best_steps { best_steps = combined_steps }
+                        if combined_steps < best_steps {
+                            best_steps = combined_steps
+                        }
                     }
                 }
                 position.x -= dist;
             }
             "R" => {
-                for x in (position.x + 1) ..= (position.x + dist) {
+                for x in (position.x + 1)..=(position.x + dist) {
                     steps += 1;
                     if let Some(steps1) = set1.get(&Point::new(x, position.y)) {
                         let dist_from_origin = x.abs() + position.y.abs();
-                        if dist_from_origin < best_dist { best_dist = dist_from_origin }
+                        if dist_from_origin < best_dist {
+                            best_dist = dist_from_origin
+                        }
                         let combined_steps = steps + steps1;
-                        if combined_steps < best_steps { best_steps = combined_steps }
+                        if combined_steps < best_steps {
+                            best_steps = combined_steps
+                        }
                     }
                 }
                 position.x += dist;
             }
             "U" => {
-                for y in (position.y - dist) .. position.y {
+                for y in (position.y - dist)..position.y {
                     steps += 1;
                     if let Some(steps1) = set1.get(&Point::new(position.x, y)) {
                         let dist_from_origin = y.abs() + position.x.abs();
-                        if dist_from_origin < best_dist { best_dist = dist_from_origin }
+                        if dist_from_origin < best_dist {
+                            best_dist = dist_from_origin
+                        }
                         let combined_steps = steps + steps1;
-                        if combined_steps < best_steps { best_steps = combined_steps }
+                        if combined_steps < best_steps {
+                            best_steps = combined_steps
+                        }
                     }
                 }
                 position.y -= dist;
             }
             "D" => {
-                for y in (position.y + 1) ..= (position.y + dist) {
+                for y in (position.y + 1)..=(position.y + dist) {
                     steps += 1;
                     if let Some(steps1) = set1.get(&Point::new(position.x, y)) {
                         let dist_from_origin = y.abs() + position.x.abs();
-                        if dist_from_origin < best_dist { best_dist = dist_from_origin }
+                        if dist_from_origin < best_dist {
+                            best_dist = dist_from_origin
+                        }
                         let combined_steps = steps + steps1;
-                        if combined_steps < best_steps { best_steps = combined_steps }
+                        if combined_steps < best_steps {
+                            best_steps = combined_steps
+                        }
                     }
                 }
                 position.y += dist;
             }
-            _ => unreachable!()
+            _ => unreachable!(),
         }
     });
 

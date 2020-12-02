@@ -25,7 +25,9 @@ fn part1() {
                         phases.push(remaining.swap_remove(i5));
 
                         let v = run_with(&phases);
-                        if v > best { best = v }
+                        if v > best {
+                            best = v
+                        }
 
                         remaining.push(phases.pop().unwrap());
                         let end = remaining.len() - 1;
@@ -68,8 +70,6 @@ fn run_with(phases: &[i64]) -> i64 {
     signal
 }
 
-
-
 fn part2() {
     let mut remaining = vec![5, 6, 7, 8, 9];
     let mut phases = Vec::with_capacity(5);
@@ -86,7 +86,9 @@ fn part2() {
                         phases.push(remaining.swap_remove(i5));
 
                         let v = run_with_feedback(&phases);
-                        if v > best { best = v }
+                        if v > best {
+                            best = v
+                        }
 
                         remaining.push(phases.pop().unwrap());
                         let end = remaining.len() - 1;
@@ -133,11 +135,12 @@ fn run_with_feedback(phases: &[i64]) -> i64 {
     d_tx.send(phases[3]).unwrap();
     e_tx.send(phases[4]).unwrap();
 
-
     let mut last_signal = 0;
 
     loop {
-        if a_tx.send(last_signal).is_err() { break }
+        if a_tx.send(last_signal).is_err() {
+            break;
+        }
         // println!("Sent to a");
         b_tx.send(a_rx.recv().unwrap()).unwrap();
         // println!("Sent to b");

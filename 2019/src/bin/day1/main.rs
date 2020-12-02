@@ -4,15 +4,18 @@ use input::INPUT;
 use std::str::FromStr;
 
 fn main() {
-    let sum: u64 = INPUT.lines()
+    let sum: u64 = INPUT
+        .lines()
         .flat_map(u64::from_str)
-        .map(|x| x/3 - 2).sum();
+        .map(|x| x / 3 - 2)
+        .sum();
     println!("1. Sum of modules is {}", sum);
-    
-    let sum2: u64 = INPUT.lines()
+
+    let sum2: u64 = INPUT
+        .lines()
         .flat_map(u64::from_str)
         .map(|x| {
-            let mut last = x/3 - 2;
+            let mut last = x / 3 - 2;
             let mut module_sum = last;
 
             while last > 8 {
@@ -25,4 +28,3 @@ fn main() {
         .sum();
     println!("2. Sum with additional fuel is {}", sum2);
 }
-

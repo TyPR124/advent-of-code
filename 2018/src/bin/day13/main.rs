@@ -1,9 +1,9 @@
 mod input;
 use self::input::INPUT;
 
-use std::cmp::{Ordering, Ord, PartialOrd};
+use std::cmp::{Ord, Ordering, PartialOrd};
 
-use aoc_2018::{Error, err, Result};
+use aoc_2018::{err, Error, Result};
 
 type Carts = std::collections::BTreeMap<Point, Cart>;
 type Turns = std::collections::HashMap<Point, Turn>;
@@ -24,19 +24,18 @@ struct Point {
 enum Turn {
     TopLeft,
     TopRight,
-    FourWay
+    FourWay,
 }
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 enum Direction {
     Up,
     Down,
     Left,
-    Right
+    Right,
 }
 
-use self::Turn::{*};
-use self::Direction::{*};
-
+use self::Direction::*;
+use self::Turn::*;
 
 fn main() -> Result<()> {
     let input = INPUT;
@@ -45,15 +44,60 @@ fn main() -> Result<()> {
     for (y, line) in input.lines().enumerate() {
         for (x, &v) in line.as_bytes().iter().enumerate() {
             match v {
-                b' '|b'-'|b'|' => {}, // Nothing
-                b'\\' => { turns.insert(Point{x,y}, TopRight); },
-                b'/' => { turns.insert(Point{x,y}, TopLeft); },
-                b'+' => { turns.insert(Point{x,y}, FourWay); },
-                b'^' => { carts.insert(Point{x,y}, Cart {dir: Up, last_intersection: Decided::default()}); },
-                b'v' => { carts.insert(Point{x,y}, Cart {dir: Down, last_intersection: Decided::default()}); },
-                b'<' => { carts.insert(Point{x,y}, Cart {dir: Left, last_intersection: Decided::default()}); },
-                b'>' => { carts.insert(Point{x,y}, Cart {dir: Right, last_intersection: Decided::default()}); },
-                _ => { return Err(err!("Unexpected character in input: '{}' at {},{}", v, x, y)) }
+                b' ' | b'-' | b'|' => {} // Nothing
+                b'\\' => {
+                    turns.insert(Point { x, y }, TopRight);
+                }
+                b'/' => {
+                    turns.insert(Point { x, y }, TopLeft);
+                }
+                b'+' => {
+                    turns.insert(Point { x, y }, FourWay);
+                }
+                b'^' => {
+                    carts.insert(
+                        Point { x, y },
+                        Cart {
+                            dir: Up,
+                            last_intersection: Decided::default(),
+                        },
+                    );
+                }
+                b'v' => {
+                    carts.insert(
+                        Point { x, y },
+                        Cart {
+                            dir: Down,
+                            last_intersection: Decided::default(),
+                        },
+                    );
+                }
+                b'<' => {
+                    carts.insert(
+                        Point { x, y },
+                        Cart {
+                            dir: Left,
+                            last_intersection: Decided::default(),
+                        },
+                    );
+                }
+                b'>' => {
+                    carts.insert(
+                        Point { x, y },
+                        Cart {
+                            dir: Right,
+                            last_intersection: Decided::default(),
+                        },
+                    );
+                }
+                _ => {
+                    return Err(err!(
+                        "Unexpected character in input: '{}' at {},{}",
+                        v,
+                        x,
+                        y
+                    ))
+                }
             }
         }
     }
@@ -82,8 +126,9 @@ fn tick(carts: &mut Carts, turns: &Turns, collisions: &mut Vec<Point>, tmp: &mut
     // rename tmp to something more meaningful inside this fn
     let updates = tmp;
     collisions.clear();
-    carts.iter().enumerate().for_each( |(i, (point, cart))| {
-        if !collisions.contains(point) { // Anything already collided with, just skip
+    carts.iter().enumerate().for_each(|(i, (point, cart))| {
+        if !collisions.contains(point) {
+            // Anything already collided with, just skip
             let mut new_point = *point;
             let mut new_cart = *cart;
             match cart.dir {
@@ -95,27 +140,31 @@ fn tick(carts: &mut Carts, turns: &Turns, collisions: &mut Vec<Point>, tmp: &mut
             // Any collisions?
             // Check future carts first, then already-updated carts
             let mut collided = false;
-            carts.iter().skip(i+1)
+            carts
+                .iter()
+                .skip(i + 1)
                 .filter(|(p2, _)| **p2 == new_point)
-                .take(1).for_each(|_| {
+                .take(1)
+                .for_each(|_| {
                     collisions.push(new_point);
                     collided = true;
                 });
             if !collided {
-                updates.iter()
+                updates
+                    .iter()
                     .filter(|(_, p2, _)| p2 == &new_point)
-                    .take(1).for_each(|_|
-                        collisions.push(new_point)
-                    );
+                    .take(1)
+                    .for_each(|_| collisions.push(new_point));
             }
-            
+
             // Update direction
             if let Some(&turn) = turns.get(&new_point) {
                 new_cart.turn(turn);
             }
 
             updates.push((*point, new_point, new_cart));
-        } else { // Was already collided with, don't move and wait for cleanup
+        } else {
+            // Was already collided with, don't move and wait for cleanup
             updates.push((*point, *point, *cart));
         }
     });
@@ -140,7 +189,7 @@ impl Ord for Point {
         let y = self.y.cmp(&other.y);
         match y {
             Ordering::Equal => self.x.cmp(&other.x),
-            _ => y
+            _ => y,
         }
     }
 }
@@ -195,23 +244,20 @@ impl Cart {
             (TopRight, Left) => Up,
             (TopRight, Right) => Down,
             //    +
-            (FourWay, _) => {
-                match self.last_intersection {
-                    Decided::Left => {
-                        self.last_intersection = Decided::Straight;
-                        self.dir
-                    },
-                    Decided::Straight => {
-                        self.last_intersection = Decided::Right;
-                        self.dir.clockwise()
-                    },
-                    Decided::Right => {
-                        self.last_intersection = Decided::Left;
-                        self.dir.counter_clockwise()
-                    }
+            (FourWay, _) => match self.last_intersection {
+                Decided::Left => {
+                    self.last_intersection = Decided::Straight;
+                    self.dir
+                }
+                Decided::Straight => {
+                    self.last_intersection = Decided::Right;
+                    self.dir.clockwise()
+                }
+                Decided::Right => {
+                    self.last_intersection = Decided::Left;
+                    self.dir.counter_clockwise()
                 }
             },
         }
     }
 }
-

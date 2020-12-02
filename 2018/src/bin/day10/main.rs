@@ -7,7 +7,8 @@ use aoc_2018::Result;
 extern crate regex;
 use regex::Regex;
 
-#[macro_use] extern crate lazy_static;
+#[macro_use]
+extern crate lazy_static;
 
 pub fn main() -> Result<()> {
     let (text, ticks) = part1(INPUT)?;
@@ -28,12 +29,32 @@ fn part1(input: &str) -> Result<(String, usize)> {
     for line in input.lines() {
         let caps = LINE_REGEX.captures(line.trim()).expect("No line captures!");
         let p = Point {
-            x: caps.name("pos_x").expect("No pos_x").as_str().trim().parse()?,
-            y: caps.name("pos_y").expect("No pos_y").as_str().trim().parse()?,
+            x: caps
+                .name("pos_x")
+                .expect("No pos_x")
+                .as_str()
+                .trim()
+                .parse()?,
+            y: caps
+                .name("pos_y")
+                .expect("No pos_y")
+                .as_str()
+                .trim()
+                .parse()?,
         };
         let v = Point {
-            x: caps.name("vel_x").expect("No vel_x").as_str().trim().parse()?,
-            y: caps.name("vel_y").expect("No vel_y").as_str().trim().parse()?,
+            x: caps
+                .name("vel_x")
+                .expect("No vel_x")
+                .as_str()
+                .trim()
+                .parse()?,
+            y: caps
+                .name("vel_y")
+                .expect("No vel_y")
+                .as_str()
+                .trim()
+                .parse()?,
         };
         points.push(p);
         vel.push(v);
@@ -41,7 +62,7 @@ fn part1(input: &str) -> Result<(String, usize)> {
     let mut display = PointDisplay {
         points,
         vel,
-        ticks: 0
+        ticks: 0,
     };
     display.to_convergence();
     Ok((display.text(), display.ticks))
@@ -64,19 +85,30 @@ struct Rect {
 }
 impl Rect {
     pub fn from_points(points: &[Point]) -> Rect {
-        let mut min = Point { x: std::isize::MAX, y: std::isize::MAX };
-        let mut max = Point { x: std::isize::MIN, y: std::isize::MIN };
+        let mut min = Point {
+            x: std::isize::MAX,
+            y: std::isize::MAX,
+        };
+        let mut max = Point {
+            x: std::isize::MIN,
+            y: std::isize::MIN,
+        };
 
         points.iter().for_each(|p| {
-            if p.x < min.x { min.x = p.x; }
-            if p.x > max.x { max.x = p.x; }
-            if p.y < min.y { min.y = p.y; }
-            if p.y > max.y { max.y = p.y; }
+            if p.x < min.x {
+                min.x = p.x;
+            }
+            if p.x > max.x {
+                max.x = p.x;
+            }
+            if p.y < min.y {
+                min.y = p.y;
+            }
+            if p.y > max.y {
+                max.y = p.y;
+            }
         });
-        Rect {
-            min,
-            max
-        }
+        Rect { min, max }
     }
     pub fn area(&self) -> usize {
         ((self.max.x - self.min.x) * (self.max.y - self.min.y)) as usize
@@ -110,16 +142,22 @@ impl PointDisplay {
         let mut convergence = self.convergence_value();
         self.step_forward();
         let mut new = self.convergence_value();
-        if new == convergence { return; }
-        if new > convergence { // If getting farther apart
-            while new > convergence { // Go until not getting farther apart
+        if new == convergence {
+            return;
+        }
+        if new > convergence {
+            // If getting farther apart
+            while new > convergence {
+                // Go until not getting farther apart
                 convergence = new;
                 self.step_forward();
                 new = self.convergence_value();
             }
         }
-        if new < convergence { // Then, If getting closer
-            while new < convergence { // Keep going until not getting closer
+        if new < convergence {
+            // Then, If getting closer
+            while new < convergence {
+                // Keep going until not getting closer
                 convergence = new;
                 self.step_forward();
                 new = self.convergence_value();
@@ -139,7 +177,7 @@ impl PointDisplay {
 
         for y in rect.min.y..=rect.max.y {
             for x in rect.min.x..=rect.max.x {
-                if self.points.contains(&Point{x, y}) {
+                if self.points.contains(&Point { x, y }) {
                     out.push('#');
                 } else {
                     out.push('.');

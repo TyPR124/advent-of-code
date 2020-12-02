@@ -1,5 +1,4 @@
-pub const INPUT: &str =
-r#"59, 110
+pub const INPUT: &str = r#"59, 110
 127, 249
 42, 290
 90, 326

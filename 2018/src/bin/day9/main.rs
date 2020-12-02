@@ -40,14 +40,16 @@ fn play_game(scores: &mut Vec<usize>, marbles: usize) {
             // ... and also added to the current player's score."
             board.counter_clockwise(6);
             scores[player] += *board.remove_counter_clockwise();
-            // "The marble located immediately clockwise of the marble that was removed becomes the new current marble."
-            // This is already true
+        // "The marble located immediately clockwise of the marble that was removed becomes the new current marble."
+        // This is already true
         } else {
             board.clockwise(1);
             board.current = board.insert_clockwise(v);
         }
         player += 1;
-        if player == scores.len() { player = 0; }
+        if player == scores.len() {
+            player = 0;
+        }
     }
 }
 #[derive(Clone)]
@@ -61,7 +63,7 @@ impl<T> Marble<T> {
         Marble {
             value: RefCell::new(value),
             next,
-            prev
+            prev,
         }
     }
 }
@@ -75,7 +77,7 @@ impl<T> Board<T> {
         marbles.push(Marble::new(first, 0, 0));
         Board {
             marbles,
-            current: 0
+            current: 0,
         }
     }
     pub fn clockwise(&mut self, n: usize) {

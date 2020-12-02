@@ -5,7 +5,7 @@ struct Node {
     id: &'static str,
     // index: usize,
     orbiting: usize,
-    count: Option<usize>
+    count: Option<usize>,
 }
 
 impl Node {
@@ -13,7 +13,7 @@ impl Node {
         Node {
             id,
             orbiting: 0,
-            count: None
+            count: None,
         }
     }
 }
@@ -79,7 +79,9 @@ fn main() {
     loop {
         i = nodes[i].orbiting;
         transfers.insert(nodes[i].id, count);
-        if i == 0 { break }
+        if i == 0 {
+            break;
+        }
         count += 1;
     }
     let mut count = 0;

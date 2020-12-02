@@ -38,13 +38,10 @@ fn part1(grid: &mut Grid) -> Point {
         .start_size(3)
         .shift(1)
         .iter()
-        .map(|s| (s.origin, grid.query_square(s)) )
+        .map(|s| (s.origin, grid.query_square(s)))
         .max_by_key(|(_, result)| *result)
         .expect("Didn't get any squares in 3x3 query")
         .0
-
-
-
 
     //hi_point
 }
@@ -104,32 +101,38 @@ impl Grid {
     }
     pub fn query(&mut self, p: Point) -> isize {
         let serial = self.serial;
-        *self.cells.entry(p).or_insert_with(||power_level(p,serial))
+        *self
+            .cells
+            .entry(p)
+            .or_insert_with(|| power_level(p, serial))
     }
     pub fn query_square(&mut self, s: Square) -> isize {
         if s.size == 0 {
             0
         } else if let Some(&answer) = self.squares.get(&s) {
             answer
-        } else if let Some(&almost) = self.squares.get(&Square { origin: s.origin, size: s.size - 1}) {
+        } else if let Some(&almost) = self.squares.get(&Square {
+            origin: s.origin,
+            size: s.size - 1,
+        }) {
             //println!("Using cached square");
             let mut finsum = 0;
-            let y = s.origin.y+s.size-1;
-            for x in s.origin.x..s.origin.x+s.size {
-                finsum += self.query(Point{x,y});
+            let y = s.origin.y + s.size - 1;
+            for x in s.origin.x..s.origin.x + s.size {
+                finsum += self.query(Point { x, y });
             }
-            let x = s.origin.x+s.size-1;
-            for y in s.origin.y..s.origin.y+s.size-1 { 
-                finsum += self.query(Point{x,y});
+            let x = s.origin.x + s.size - 1;
+            for y in s.origin.y..s.origin.y + s.size - 1 {
+                finsum += self.query(Point { x, y });
             }
-            let answer = almost+finsum;
+            let answer = almost + finsum;
             self.squares.insert(s, answer);
             answer
         } else {
             let mut sum = 0;
-            for x in s.origin.x..s.origin.x+s.size {
-                for y in s.origin.y..s.origin.y+s.size {
-                    sum += self.query(Point{x,y});
+            for x in s.origin.x..s.origin.x + s.size {
+                for y in s.origin.y..s.origin.y + s.size {
+                    sum += self.query(Point { x, y });
                 }
             }
             self.squares.insert(s, sum);
@@ -147,7 +150,7 @@ fn power_level(p: Point, serial: usize) -> isize {
     let string = format!("{}", tmp_power_lvl);
     let len = string.len();
     let power_level = if len >= 3 {
-        (&string[len-3..len-2]).parse().unwrap()
+        (&string[len - 3..len - 2]).parse().unwrap()
     } else {
         0isize
     } - 5;
@@ -157,15 +160,15 @@ fn power_level(p: Point, serial: usize) -> isize {
 #[derive(Copy, Clone, Default)]
 struct Squares {
     whole_size: usize, // Size of entire grid
-    max_size: usize, // Max size of output square
-    cpoint: Point, // Current point
-    csize: usize, // Current size
-    shift: usize, // Don't think too hard about off-by-one
-                  // (Shifts all output squares by a set amount in both x,y)
+    max_size: usize,   // Max size of output square
+    cpoint: Point,     // Current point
+    csize: usize,      // Current size
+    shift: usize,      // Don't think too hard about off-by-one
+                       // (Shifts all output squares by a set amount in both x,y)
 }
 
 struct SquaresBuilder {
-    inner: Squares
+    inner: Squares,
 }
 
 impl SquaresBuilder {
@@ -190,7 +193,8 @@ impl SquaresBuilder {
     }
     pub fn iter(&mut self) -> &mut Squares {
         let sq = &mut self.inner;
-        sq.cpoint = Point { // Ensures first loop increments size
+        sq.cpoint = Point {
+            // Ensures first loop increments size
             x: sq.whole_size - sq.csize,
             y: sq.whole_size - sq.csize,
         };
@@ -202,7 +206,7 @@ impl Squares {
     #![allow(clippy::clippy::new_ret_no_self)]
     pub fn new() -> SquaresBuilder {
         SquaresBuilder {
-            inner: Squares::default()
+            inner: Squares::default(),
         }
     }
 }
@@ -223,7 +227,7 @@ impl Iterator for Squares {
                     if self.csize % 30 == 0 {
                         println!("Checked sizes up to {}...", self.csize);
                     }
-                    self.cpoint = Point{x:0,y:0};
+                    self.cpoint = Point { x: 0, y: 0 };
                 } else {
                     // Last result was last of this row
                     self.cpoint.y += 1;
@@ -233,12 +237,12 @@ impl Iterator for Squares {
                 self.cpoint.x += 1;
             } // Done incrementing
 
-            Some(Square{
-                origin: Point{
+            Some(Square {
+                origin: Point {
                     x: self.cpoint.x + self.shift,
                     y: self.cpoint.y + self.shift,
                 },
-                size: self.csize
+                size: self.csize,
             })
         }
     }

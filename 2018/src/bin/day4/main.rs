@@ -1,7 +1,8 @@
 mod input;
 use self::input::INPUT;
 
-#[macro_use] extern crate lazy_static;
+#[macro_use]
+extern crate lazy_static;
 extern crate regex;
 use regex::Regex;
 
@@ -26,24 +27,31 @@ fn part1_and_part2(input: &str) -> Result<(u64, u64)> {
     entries.sort();
 
     use std::collections::HashMap;
-    use std::ops::Range;
     use std::ops::AddAssign;
+    use std::ops::Range;
     let mut current_guard: u64 = 0;
     let mut asleep_since: usize = 0;
     let mut total_sleep = HashMap::new();
     let mut sleep_times = HashMap::new();
-    entries.iter().for_each(|e|
-        match e.detail {
-            Detail::NewGuard(g) => current_guard = g,
-            Detail::GuardAsleep => asleep_since = e.date.minute,
-            Detail::GuardAwake => {
-                let sleep_range = Range {start: asleep_since, end: e.date.minute};
-                total_sleep.entry(current_guard).or_insert(0).add_assign(sleep_range.end - sleep_range.start);
-                #[allow(clippy::clippy::or_fun_call)]
-                sleep_times.entry(current_guard).or_insert(Vec::new()).push(sleep_range);
-            }
+    entries.iter().for_each(|e| match e.detail {
+        Detail::NewGuard(g) => current_guard = g,
+        Detail::GuardAsleep => asleep_since = e.date.minute,
+        Detail::GuardAwake => {
+            let sleep_range = Range {
+                start: asleep_since,
+                end: e.date.minute,
+            };
+            total_sleep
+                .entry(current_guard)
+                .or_insert(0)
+                .add_assign(sleep_range.end - sleep_range.start);
+            #[allow(clippy::clippy::or_fun_call)]
+            sleep_times
+                .entry(current_guard)
+                .or_insert(Vec::new())
+                .push(sleep_range);
         }
-    );
+    });
     let mut max_sleep = 0;
     let mut sleepy_guard = 0;
     for kv in total_sleep {
@@ -116,19 +124,20 @@ impl FromStr for Entry {
     type Err = Error;
     fn from_str(s: &str) -> Result<Entry> {
         lazy_static! {
-            static ref ENTRY_REGEX: Regex = Regex::new(r#"^\[([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+)\] (.+)$"#).unwrap();
+            static ref ENTRY_REGEX: Regex =
+                Regex::new(r#"^\[([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+)\] (.+)$"#).unwrap();
         }
 
         if let Some(caps) = ENTRY_REGEX.captures(s) {
-            Ok(Entry{
-                date: DateTime{
+            Ok(Entry {
+                date: DateTime {
                     year: caps[1].parse()?,
                     month: caps[2].parse()?,
                     day: caps[3].parse()?,
                     hour: caps[4].parse()?,
                     minute: caps[5].parse()?,
                 },
-                detail: caps[6].parse()?
+                detail: caps[6].parse()?,
             })
         } else {
             Err(Box::from("Could not find regex matches"))
@@ -147,15 +156,18 @@ impl FromStr for Detail {
     type Err = Error;
     fn from_str(s: &str) -> Result<Detail> {
         lazy_static! {
-            static ref NEWGUARD_REGEX: Regex = Regex::new(r#"^Guard #([0-9]+) begins shift$"#).unwrap();
+            static ref NEWGUARD_REGEX: Regex =
+                Regex::new(r#"^Guard #([0-9]+) begins shift$"#).unwrap();
         }
         if let Some(caps) = NEWGUARD_REGEX.captures(s) {
             Ok(Detail::NewGuard(caps[1].parse()?))
-        } else { match s {
-            "wakes up" => Ok(Detail::GuardAwake),
-            "falls asleep" => Ok(Detail::GuardAsleep),
-            _ => Err(Box::from("Found unexpected detail line"))
-        }}
+        } else {
+            match s {
+                "wakes up" => Ok(Detail::GuardAwake),
+                "falls asleep" => Ok(Detail::GuardAsleep),
+                _ => Err(Box::from("Found unexpected detail line")),
+            }
+        }
     }
 }
 

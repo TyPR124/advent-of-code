@@ -4,9 +4,7 @@ use input::INPUT;
 use std::str::FromStr;
 
 fn main() {
-    let data0: Vec<usize> = INPUT.split(',')
-        .flat_map(usize::from_str)
-        .collect();
+    let data0: Vec<usize> = INPUT.split(',').flat_map(usize::from_str).collect();
 
     // let mut i = 0;
     let mut data = data0.clone();
@@ -23,7 +21,7 @@ fn main() {
             data[2] = b;
             run_program(&mut data);
             if data[0] == GOAL {
-                println!("2. {}", 100*a + b);
+                println!("2. {}", 100 * a + b);
                 break 'outer;
             }
         }
@@ -36,21 +34,20 @@ fn run_program(data: &mut [usize]) {
     let mut i = 0;
     loop {
         let op = data[i];
-        if op == 99 { break }
-        let v1 = data[data[i+1]];
-        let v2 = data[data[i+2]];
-        let out_index = data[i+3];
-        data[out_index] = if op == 1 { v1 + v2 }
-                          else { v1 * v2 };
+        if op == 99 {
+            break;
+        }
+        let v1 = data[data[i + 1]];
+        let v2 = data[data[i + 2]];
+        let out_index = data[i + 3];
+        data[out_index] = if op == 1 { v1 + v2 } else { v1 * v2 };
         i += 4;
     }
 }
 
 use aoc_2019::*;
 fn main2() {
-    let data0: Vec<i64> = INPUT.split(',')
-        .flat_map(i64::from_str)
-        .collect();
+    let data0: Vec<i64> = INPUT.split(',').flat_map(i64::from_str).collect();
     let mut data = data0.clone();
     data[1] = 12;
     data[2] = 2;
@@ -67,7 +64,7 @@ fn main2() {
             let (mut cpu, ..) = Cpu::new(data);
             cpu.run().unwrap();
             if cpu.mem()[0] == GOAL {
-                println!("2. {}", 100*a + b);
+                println!("2. {}", 100 * a + b);
                 break 'outer;
             }
         }

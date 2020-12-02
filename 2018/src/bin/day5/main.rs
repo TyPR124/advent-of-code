@@ -2,7 +2,7 @@ mod input;
 use self::input::INPUT;
 
 extern crate aoc_2018;
-use aoc_2018::{Result};
+use aoc_2018::Result;
 
 fn main() -> Result<()> {
     let p1 = part1(INPUT);
@@ -18,7 +18,7 @@ fn part1(input: &str) -> usize {
     input.iter().for_each(|b| {
         if new.is_empty() {
             new.push(*b);
-        } else if is_match(new[new.len()-1], *b) {
+        } else if is_match(new[new.len() - 1], *b) {
             new.pop();
         } else {
             new.push(*b);
@@ -35,15 +35,17 @@ fn part2(input: &str) -> Result<usize> {
         all.insert(b, Vec::<u8>::with_capacity(input.len()));
     }
     input.iter().for_each(|b| {
-        all.iter_mut().filter(|kv| *kv.0 != b.to_ascii_uppercase()).for_each(|kv| {
-            if kv.1.is_empty() {
-                kv.1.push(*b);
-            } else if is_match(kv.1[kv.1.len()-1], *b) {
-                kv.1.pop();
-            } else {
-                kv.1.push(*b);
-            }
-        });
+        all.iter_mut()
+            .filter(|kv| *kv.0 != b.to_ascii_uppercase())
+            .for_each(|kv| {
+                if kv.1.is_empty() {
+                    kv.1.push(*b);
+                } else if is_match(kv.1[kv.1.len() - 1], *b) {
+                    kv.1.pop();
+                } else {
+                    kv.1.push(*b);
+                }
+            });
     });
     Ok(all.values().map(|v| v.len()).min()?)
 }

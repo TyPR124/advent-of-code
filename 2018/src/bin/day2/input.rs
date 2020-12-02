@@ -1,5 +1,4 @@
-pub const INPUT: &str =
-r#"tjxmoewpqkyaiqvmndgflunszc
+pub const INPUT: &str = r#"tjxmoewpqkyaiqvmndgflunszc
 tjxmobwpqkyaihvrndgfjubszm
 tjxmzewpqkyaihvrydgflrbszc
 tjxmoeypqkyvihvrndgflubsza

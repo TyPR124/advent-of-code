@@ -1,5 +1,4 @@
-pub const INPUT: &str = 
-r#"[1518-08-21 00:39] wakes up
+pub const INPUT: &str = r#"[1518-08-21 00:39] wakes up
 [1518-08-11 00:56] wakes up
 [1518-10-10 23:52] Guard #2707 begins shift
 [1518-10-14 00:55] wakes up

@@ -1,4 +1,4 @@
-use std::sync::mpsc::{self, SyncSender, Receiver};
+use std::sync::mpsc::{self, Receiver, SyncSender};
 use std::thread::{self, JoinHandle};
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
@@ -12,7 +12,9 @@ impl Parameter {
         match self {
             Parameter::Position(idx) => *cpu.get_mem_or_extend(idx),
             Parameter::Value(v) => v,
-            Parameter::Relative(offset) => *cpu.get_mem_or_extend((cpu.relative_base as i64 + offset) as usize),
+            Parameter::Relative(offset) => {
+                *cpu.get_mem_or_extend((cpu.relative_base as i64 + offset) as usize)
+            }
         }
     }
     // fn as_ref<'a>(&'a self, mem: &'a [isize]) -> &'a isize {
@@ -25,7 +27,9 @@ impl Parameter {
         match self {
             Parameter::Position(idx) => cpu.get_mem_or_extend(*idx),
             Parameter::Value(v) => v,
-            Parameter::Relative(offset) => cpu.get_mem_or_extend((cpu.relative_base as i64 + *offset) as usize),
+            Parameter::Relative(offset) => {
+                cpu.get_mem_or_extend((cpu.relative_base as i64 + *offset) as usize)
+            }
         }
     }
 }
@@ -56,7 +60,7 @@ impl Instruction {
             Lth(..) => 4,
             Equ(..) => 4,
             Rbo(..) => 2,
-            Hlt     => 1,
+            Hlt => 1,
         }
     }
 }
@@ -88,13 +92,17 @@ impl Cpu {
             output: o_tx,
             relative_base: 0,
             iptr: 0,
-            hlt: true
+            hlt: true,
         };
         (ret, i_tx, o_rx)
     }
     pub fn from_input(input: &str) -> (Self, SyncSender<i64>, Receiver<i64>) {
         use std::str::FromStr;
-        let mem = input.lines().next().unwrap().split(',')
+        let mem = input
+            .lines()
+            .next()
+            .unwrap()
+            .split(',')
             .map(i64::from_str)
             .map(Result::unwrap)
             .collect();
@@ -110,15 +118,13 @@ impl Cpu {
         Ok(())
     }
     pub fn run_parallel(mut self) -> JoinHandle<Result<Self, Error>> {
-        thread::spawn(move|| {
+        thread::spawn(move || {
             self.run()?;
             Ok(self)
         })
     }
     pub fn run_parallel_and_drop(mut self) -> JoinHandle<Result<(), Error>> {
-        thread::spawn(move|| {
-            self.run()
-        })
+        thread::spawn(move || self.run())
     }
     pub fn mem(&self) -> &[i64] {
         &self.mem
@@ -136,16 +142,16 @@ impl Cpu {
         let mut pmodes = full_op / 100;
         let pmodes = &mut pmodes;
         let param: &mut dyn FnMut(&mut Cpu, usize) -> Result<Parameter, Error> =
-        &mut move|this, offset| {
-            let mode = (*pmodes % 10) as u64;
-            *pmodes /= 10;
-            match mode {
-                0 => Ok(Parameter::Position(this.instruction_offset(offset) as usize)),
-                1 => Ok(Parameter::Value(this.instruction_offset(offset))),
-                2 => Ok(Parameter::Relative(this.instruction_offset(offset))),
-                _ => Err(Error::InvalidParameterMode(mode)),
-            }
-        };
+            &mut move |this, offset| {
+                let mode = (*pmodes % 10) as u64;
+                *pmodes /= 10;
+                match mode {
+                    0 => Ok(Parameter::Position(this.instruction_offset(offset) as usize)),
+                    1 => Ok(Parameter::Value(this.instruction_offset(offset))),
+                    2 => Ok(Parameter::Relative(this.instruction_offset(offset))),
+                    _ => Err(Error::InvalidParameterMode(mode)),
+                }
+            };
         use Instruction::*;
         let ix = match op {
             1 => Add(param(self, 1)?, param(self, 2)?, param(self, 3)?),
@@ -172,16 +178,35 @@ impl Cpu {
         match ix {
             Instruction::Add(a, b, mut out) => *out.as_mut(self) = a.value(self) + b.value(self),
             Instruction::Mlt(a, b, mut out) => *out.as_mut(self) = a.value(self) * b.value(self),
-            Instruction::Inp(mut a) => *a.as_mut(self) = self.input.recv().ok().ok_or(Error::InputBroken)?,
-            Instruction::Otp(a) => { let v = a.value(self); self.output.send(v).ok().ok_or(Error::OutputBroken)? },
-            Instruction::Jit(x, p) => if 0 != x.value(self) { next_iptr = Some(p.value(self) as usize) },
-            Instruction::Jif(x, p) => if 0 == x.value(self) { next_iptr = Some(p.value(self) as usize) },
-            Instruction::Lth(a, b, mut out) => *out.as_mut(self) = if a.value(self) < b.value(self) { 1 } else { 0 },
-            Instruction::Equ(a, b, mut out) => *out.as_mut(self) = if a.value(self) == b.value(self) { 1 } else { 0 },
-            Instruction::Rbo(x) => self.relative_base = (self.relative_base as i64 + x.value(self)) as usize,
+            Instruction::Inp(mut a) => {
+                *a.as_mut(self) = self.input.recv().ok().ok_or(Error::InputBroken)?
+            }
+            Instruction::Otp(a) => {
+                let v = a.value(self);
+                self.output.send(v).ok().ok_or(Error::OutputBroken)?
+            }
+            Instruction::Jit(x, p) => {
+                if 0 != x.value(self) {
+                    next_iptr = Some(p.value(self) as usize)
+                }
+            }
+            Instruction::Jif(x, p) => {
+                if 0 == x.value(self) {
+                    next_iptr = Some(p.value(self) as usize)
+                }
+            }
+            Instruction::Lth(a, b, mut out) => {
+                *out.as_mut(self) = if a.value(self) < b.value(self) { 1 } else { 0 }
+            }
+            Instruction::Equ(a, b, mut out) => {
+                *out.as_mut(self) = if a.value(self) == b.value(self) { 1 } else { 0 }
+            }
+            Instruction::Rbo(x) => {
+                self.relative_base = (self.relative_base as i64 + x.value(self)) as usize
+            }
             Instruction::Hlt => self.hlt = true,
         }
-        self.iptr = next_iptr.unwrap_or_else(||self.iptr + ix.len());
+        self.iptr = next_iptr.unwrap_or_else(|| self.iptr + ix.len());
         // println!("Instruction ptr: {}", self.iptr);
 
         Ok(())

@@ -13,15 +13,13 @@ fn main() {
 fn part2(input: &str) -> String {
     // use std::iter::Iterator;
     for (i, a) in input.lines().enumerate() {
-        for b in input.lines().skip(i+1) {
+        for b in input.lines().skip(i + 1) {
             let (differ, pos) = differs_by_one(a, b);
             if differ {
-                let bytes = a.bytes()
-                .enumerate()
-                .filter_map(|(i, b)|
-                if i != pos {
-                    Some(b)
-                } else { None });
+                let bytes = a
+                    .bytes()
+                    .enumerate()
+                    .filter_map(|(i, b)| if i != pos { Some(b) } else { None });
                 return String::from_utf8(bytes.collect()).expect("Failed to build final string");
             }
         }
@@ -59,8 +57,12 @@ fn part1(input: &str) -> usize {
 
     for line in input.lines() {
         let (two, three) = line_has_two_or_three(line);
-        if two { two_count += 1; }
-        if three {three_count += 1; }
+        if two {
+            two_count += 1;
+        }
+        if three {
+            three_count += 1;
+        }
     }
 
     two_count * three_count
@@ -79,8 +81,18 @@ fn line_has_two_or_three(line: &str) -> (bool, bool) {
     let mut three = false;
     for v in chars.values() {
         match *v {
-            2 => {two = true; if three {break;}},
-            3 => {three = true; if two {break;}},
+            2 => {
+                two = true;
+                if three {
+                    break;
+                }
+            }
+            3 => {
+                three = true;
+                if two {
+                    break;
+                }
+            }
             _ => continue,
         }
     }

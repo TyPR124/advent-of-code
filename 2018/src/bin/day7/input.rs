@@ -1,5 +1,4 @@
-pub const INPUT: &str =
-r#"Step G must be finished before step L can begin.
+pub const INPUT: &str = r#"Step G must be finished before step L can begin.
 Step X must be finished before step U can begin.
 Step W must be finished before step H can begin.
 Step M must be finished before step S can begin.

@@ -1,4 +1,4 @@
-use aoc_2018::{Error, err, Result};
+use aoc_2018::{err, Error, Result};
 use std::str::FromStr;
 
 mod input;
@@ -16,13 +16,13 @@ fn main() -> Result<()> {
             const INIT_STATE_LABEL: &str = "initial state: ";
             let initial_state = INIT_STATE_LABEL.as_bytes();
             if line.len() < initial_state.len() + 1 {
-                return Err(err!("Initial state line too short"))
+                return Err(err!("Initial state line too short"));
             } else {
                 for x in line[initial_state.len()..].iter() {
                     match x {
                         b'.' => plants.data.push(false),
                         b'#' => plants.data.push(true),
-                        _ => return Err(err!("Invalid character in initial state"))
+                        _ => return Err(err!("Invalid character in initial state")),
                     }
                 }
             }
@@ -30,9 +30,9 @@ fn main() -> Result<()> {
             match linestr.parse::<Rule>() {
                 Ok(rule) => rules.push(rule),
                 Err(e) => match e {
-                    RuleFromStrError::Dud => {}, // Just skip it
+                    RuleFromStrError::Dud => {} // Just skip it
                     RuleFromStrError::Other(e) => return Err(e),
-                }
+                },
             }
         }
     }
@@ -44,10 +44,18 @@ fn main() -> Result<()> {
         plants = history[i].step_cloned(&rules, &mut tmp);
         for (j, p) in history.iter().enumerate() {
             if &plants == p {
-                println!("Found cycle: {} -> {}", i+1, j);
+                println!("Found cycle: {} -> {}", i + 1, j);
                 break 'outer;
             } else if same_pattern(&plants, p) {
-                println!("Found pattern: {} -> {}, offsets: {} -> {}, sums: {} -> {}", i+1, j, plants.offset, p.offset, plants.sum(), p.sum());
+                println!(
+                    "Found pattern: {} -> {}, offsets: {} -> {}, sums: {} -> {}",
+                    i + 1,
+                    j,
+                    plants.offset,
+                    p.offset,
+                    plants.sum(),
+                    p.sum()
+                );
                 println!("You can use this information to answer part 2.\nA calculator is easier than coding it correctly.\nAnswer ends up being:\n8646 + (8646 - 8574) * (50000000000 - 92) = 3,600,000,002,022 ( 3600000002022 )");
                 break 'outer;
             }
@@ -70,19 +78,25 @@ fn same_pattern(p1: &Plants, p2: &Plants) -> bool {
 
 impl Plants {
     fn sum(&self) -> isize {
-        self.data.iter().enumerate().filter( |(_, &v)| v )
-            .map( |(i, _)| i as isize + self.offset ).sum()
+        self.data
+            .iter()
+            .enumerate()
+            .filter(|(_, &v)| v)
+            .map(|(i, _)| i as isize + self.offset)
+            .sum()
     }
     fn step_cloned(&mut self, rules: &[Rule], tmp: &mut Vec<bool>) -> Plants {
         //println!("Stepping...");
-        if self.data.is_empty() { return self.clone() }
+        if self.data.is_empty() {
+            return self.clone();
+        }
         let lo_hi = [false; 4];
         //let len = lo_buf.len() + hi_buf.len() + self.data.len();
         let old = lo_hi.iter().chain(self.data.iter()).chain(lo_hi.iter());
         tmp.clear();
         tmp.extend(old);
         let mut new = Plants {
-            data: Vec::with_capacity(tmp.len()-4),
+            data: Vec::with_capacity(tmp.len() - 4),
             offset: self.offset,
         };
         let mut lo_extra = 2;
@@ -100,7 +114,8 @@ impl Plants {
                         } else {
                             lo_extra -= 1;
                         }
-                    } else { // found_first
+                    } else {
+                        // found_first
                         new.data.push(rule.result());
                     }
                     break;
@@ -110,7 +125,8 @@ impl Plants {
             if !matched_rule {
                 if found_first {
                     new.data.push(set[2]);
-                } else { // Is this the first?
+                } else {
+                    // Is this the first?
                     if set[2] {
                         found_first = true;
                         new.data.push(true);
@@ -123,10 +139,10 @@ impl Plants {
 
         if !new.data.is_empty() {
             let mut i = 1;
-            while !new.data[new.data.len()-i] {
+            while !new.data[new.data.len() - i] {
                 i += 1
             }
-            new.data.truncate(new.data.len()-(i-1));
+            new.data.truncate(new.data.len() - (i - 1));
         }
         new.offset -= lo_extra;
         new
@@ -163,7 +179,11 @@ impl FromStr for Rule {
                 match x {
                     b'.' => r.mval[i] = false,
                     b'#' => r.mval[i] = true,
-                    _ => return Err(RuleFromStrError::Other(err!("Invalid character in rule body"))),
+                    _ => {
+                        return Err(RuleFromStrError::Other(err!(
+                            "Invalid character in rule body"
+                        )))
+                    }
                 }
             }
             Ok(r)
@@ -172,8 +192,8 @@ impl FromStr for Rule {
 }
 
 enum RuleFromStrError<O> {
-    Dud, // The rule doesn't do anything; it's a dud
-    Other(O) // The parser had an actual error
+    Dud,      // The rule doesn't do anything; it's a dud
+    Other(O), // The parser had an actual error
 }
 
 impl<O> From<O> for RuleFromStrError<O> {

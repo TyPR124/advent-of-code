@@ -1,5 +1,4 @@
-pub const INPUT: &str =
-r#"position=< 51781,  41361> velocity=<-5, -4>
+pub const INPUT: &str = r#"position=< 51781,  41361> velocity=<-5, -4>
 position=< 31129, -41131> velocity=<-3,  4>
 position=<-20450,  31057> velocity=< 2, -3>
 position=< 31145,  10425> velocity=<-3, -1>

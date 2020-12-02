@@ -3,25 +3,25 @@ use input::INPUT;
 
 use aoc_2019::*;
 
-use std::sync::mpsc::{SyncSender, Receiver};
 use std::collections::HashMap;
+use std::sync::mpsc::{Receiver, SyncSender};
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 struct Point {
     x: isize,
-    y: isize
+    y: isize,
 }
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 enum Color {
     Black,
-    White
+    White,
 }
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 enum Direction {
     North,
     East,
     South,
-    West
+    West,
 }
 use Direction::*;
 impl Direction {
@@ -30,7 +30,7 @@ impl Direction {
             North => East,
             East => South,
             South => West,
-            West => North
+            West => North,
         }
     }
     fn counter_clockwise(self) -> Self {
@@ -38,7 +38,7 @@ impl Direction {
             North => West,
             West => South,
             South => East,
-            East => North
+            East => North,
         }
     }
 }
@@ -58,7 +58,7 @@ impl EmergencyHullPaintingRobot {
             location: Point { x: 0, y: 0 },
             direction: North,
             tx,
-            rx
+            rx,
         }
     }
     fn from_input(input: &str) -> Self {
@@ -73,34 +73,38 @@ impl EmergencyHullPaintingRobot {
 
         loop {
             // Send current color
-            let color = self.painted.get(&self.location).copied().unwrap_or(Color::Black);
+            let color = self
+                .painted
+                .get(&self.location)
+                .copied()
+                .unwrap_or(Color::Black);
             let color = match color {
                 Color::Black => 0,
-                Color::White => 1
+                Color::White => 1,
             };
             match self.tx.send(color) {
-                Ok(()) => {},
-                Err(_) => break
+                Ok(()) => {}
+                Err(_) => break,
             }
             // Recv new color
             let new_color = match self.rx.recv() {
                 Ok(0) => Color::Black,
                 Ok(1) => Color::White,
                 Err(_) => break,
-                _ => unreachable!("Invalid color input")
+                _ => unreachable!("Invalid color input"),
             };
             self.painted.insert(self.location, new_color);
             // Recv new direction
             match self.rx.recv().unwrap() {
                 0 => self.direction = self.direction.counter_clockwise(),
                 1 => self.direction = self.direction.clockwise(),
-                _ => unreachable!("Invalid turn input")
+                _ => unreachable!("Invalid turn input"),
             }
             match self.direction {
                 North => self.location.y -= 1,
                 South => self.location.y += 1,
                 West => self.location.x -= 1,
-                East => self.location.x += 1
+                East => self.location.x += 1,
             }
         } // loop
         self.painted
@@ -113,8 +117,15 @@ fn main() {
     let mut robot = EmergencyHullPaintingRobot::from_input(INPUT);
     robot.set_starting_panel_white();
     let painted = robot.run();
-    let mut white: Vec<Point> = painted.into_iter()
-        .filter_map(|(point, color)| if color == Color::White { Some(point) } else { None })
+    let mut white: Vec<Point> = painted
+        .into_iter()
+        .filter_map(|(point, color)| {
+            if color == Color::White {
+                Some(point)
+            } else {
+                None
+            }
+        })
         .collect();
     let min_x = white.iter().map(|p| p.x).min().unwrap();
     let max_x = white.iter().map(|p| p.x).max().unwrap();

@@ -2,7 +2,7 @@ mod input;
 use self::input::INPUT;
 
 extern crate aoc_2018;
-use aoc_2018::{Result, Error, err};
+use aoc_2018::{err, Error, Result};
 
 extern crate rayon;
 use rayon::prelude::*;
@@ -40,7 +40,6 @@ pub fn main() -> Result<()> {
     Ok(())
 }
 
-
 fn distance(p1: &Point, p2: &Point) -> usize {
     fn abs(i: isize) -> isize {
         if i < 0 {
@@ -59,12 +58,14 @@ fn part1(points: &[Point], bounds: Bounds) -> Result<usize> {
     use std::sync::Mutex;
     let results = Mutex::new(HashMap::<usize, usize>::new());
     let disq = Mutex::new(HashSet::<usize>::new());
-    
-    bounds.all_points().par_iter().for_each(|r| { // r becasue it's a (not-so-)random point in the bounds
+
+    bounds.all_points().par_iter().for_each(|r| {
+        // r becasue it's a (not-so-)random point in the bounds
         let mut min = std::usize::MAX;
         let mut owners = 0;
         let mut winner = 0;
-        points.iter().enumerate().for_each(|(i, o)| { // o because it's a potential owner
+        points.iter().enumerate().for_each(|(i, o)| {
+            // o because it's a potential owner
             let r_o = distance(&r, &o);
             #[allow(clippy::clippy::comparison_chain)]
             if r_o < min {
@@ -76,7 +77,8 @@ fn part1(points: &[Point], bounds: Bounds) -> Result<usize> {
             }
         });
         if owners == 1 {
-            if bounds.is_on_perimeter(r) { // It is perimeter, therefore winner is disqualified
+            if bounds.is_on_perimeter(r) {
+                // It is perimeter, therefore winner is disqualified
                 let mut dqguard = disq.lock().expect("Failed to wait for disq lock");
                 dqguard.insert(winner);
                 drop(dqguard);
@@ -92,16 +94,23 @@ fn part1(points: &[Point], bounds: Bounds) -> Result<usize> {
     let results = results.into_inner()?;
     let disq = disq.into_inner()?;
 
-    Ok(*results.iter().filter(|kv| {
-        !disq.contains(kv.0)
-    }).map(|kv| kv.1).max()?)
+    Ok(*results
+        .iter()
+        .filter(|kv| !disq.contains(kv.0))
+        .map(|kv| kv.1)
+        .max()?)
 }
 fn part2(points: &[Point], bounds: Bounds) -> Result<usize> {
-    Ok(bounds.all_points().par_iter().map(|r| {
-        let mut r_total = 0;
-        points.iter().for_each(|p| { r_total += distance(&p, &r) });
-        r_total
-    }).filter(|t| *t < 10000).count())
+    Ok(bounds
+        .all_points()
+        .par_iter()
+        .map(|r| {
+            let mut r_total = 0;
+            points.iter().for_each(|p| r_total += distance(&p, &r));
+            r_total
+        })
+        .filter(|t| *t < 10000)
+        .count())
 }
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 struct Point {
@@ -117,7 +126,7 @@ impl FromStr for Point {
         } else {
             Ok(Point {
                 x: parts.next()?.parse()?,
-                y: parts.next()?.parse()?
+                y: parts.next()?.parse()?,
             })
         }
     }
@@ -127,31 +136,28 @@ struct Bounds {
     pub min_x: isize,
     pub max_x: isize,
     pub min_y: isize,
-    pub max_y: isize
+    pub max_y: isize,
 }
 impl Bounds {
     pub fn contains(&self, p: &Point) -> bool {
-        p.x >= self.min_x && p.x <= self.max_x &&
-        p.y >= self.min_y && p.y <= self.max_y
+        p.x >= self.min_x && p.x <= self.max_x && p.y >= self.min_y && p.y <= self.max_y
     }
     pub fn all_points(&self) -> Vec<Point> {
         //PointGenerator::new(*self)
         let mut vec = Vec::with_capacity(self.area());
         for y in self.min_y..=self.max_y {
             for x in self.min_x..=self.max_x {
-                vec.push(Point{x,y});
+                vec.push(Point { x, y });
             }
         }
         vec
     }
     pub fn is_on_perimeter(&self, p: &Point) -> bool {
-        self.contains(p) &&
-        (p.x == self.min_x || p.x == self.max_x) ||
-        (p.y == self.min_y || p.y == self.max_y)
+        self.contains(p) && (p.x == self.min_x || p.x == self.max_x)
+            || (p.y == self.min_y || p.y == self.max_y)
     }
     pub fn area(&self) -> usize {
-        (self.max_x - self.min_x + 1) as usize *
-        (self.max_y - self.min_y + 1) as usize
+        (self.max_x - self.min_x + 1) as usize * (self.max_y - self.min_y + 1) as usize
     }
 }
 

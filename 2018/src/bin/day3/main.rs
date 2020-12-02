@@ -1,10 +1,11 @@
-#[macro_use] extern crate lazy_static;
+#[macro_use]
+extern crate lazy_static;
 extern crate regex;
 use regex::Regex;
-use std::str::FromStr;
-use std::slice::Iter;
-use std::iter::Enumerate;
 use std::collections::HashSet;
+use std::iter::Enumerate;
+use std::slice::Iter;
+use std::str::FromStr;
 //use std::hash::Hash;
 
 mod input;
@@ -20,32 +21,48 @@ fn main() {
 fn part1(input: &str) -> usize {
     let mut overlaps = HashSet::new();
     let claims = input.parse::<Claims>().expect("Could not parse claims!");
-    claims.enumerate().for_each(|(i, a)|
-        claims.iter().skip(i+1).for_each(|b|
-            overlaps.extend(overlapping_points(&a.rect, &b.rect))
-        )
-    );
+    claims.enumerate().for_each(|(i, a)| {
+        claims
+            .iter()
+            .skip(i + 1)
+            .for_each(|b| overlaps.extend(overlapping_points(&a.rect, &b.rect)))
+    });
     overlaps.len()
 }
 
 fn part2(input: &str) -> u64 {
     let claims = input.parse::<Claims>().expect("Could not parse claims!");
     let mut id = 0;
-    #[derive(Debug)] struct OverlapError;
-    #[derive(Debug)] struct DoneError;
+    #[derive(Debug)]
+    struct OverlapError;
+    #[derive(Debug)]
+    struct DoneError;
 
-    if claims.enumerate().try_for_each( |(i, a)|
-        if claims.enumerate().filter( |(j, _)| *j != i ).try_for_each( |(_, b)|
-            if !overlapping_points(&a.rect, &b.rect).is_empty() {
-                Err(OverlapError)
-            } else { Ok(()) }
-        ).is_ok() { // This a never overlapped with a b
-            id = a.id;
-            Err(DoneError)
-        } else {
-            Ok(()) // continue try_for_each
-        }
-    ).is_err() { // DoneError
+    if claims
+        .enumerate()
+        .try_for_each(|(i, a)| {
+            if claims
+                .enumerate()
+                .filter(|(j, _)| *j != i)
+                .try_for_each(|(_, b)| {
+                    if !overlapping_points(&a.rect, &b.rect).is_empty() {
+                        Err(OverlapError)
+                    } else {
+                        Ok(())
+                    }
+                })
+                .is_ok()
+            {
+                // This a never overlapped with a b
+                id = a.id;
+                Err(DoneError)
+            } else {
+                Ok(()) // continue try_for_each
+            }
+        })
+        .is_err()
+    {
+        // DoneError
         id
     } else {
         panic!("Failed to find non-overlapping claim")
@@ -54,20 +71,25 @@ fn part2(input: &str) -> u64 {
 
 #[allow(clippy::if_same_then_else)]
 fn overlapping_points(a: &Rect, b: &Rect) -> Vec<Point> {
-    if a == b { // Same rect
+    if a == b {
+        // Same rect
         a.all_points()
-    } else if a.right() < b.left() || a.left() > b.right() { // No x overlap
+    } else if a.right() < b.left() || a.left() > b.right() {
+        // No x overlap
         Vec::with_capacity(0)
-    } else if a.bottom() < b.top() || a.top() > b.bottom() { // No y overlap
+    } else if a.bottom() < b.top() || a.top() > b.bottom() {
+        // No y overlap
         Vec::with_capacity(0)
-    } else { // Must be some overlap
-        use std::cmp::{min, max};
+    } else {
+        // Must be some overlap
+        use std::cmp::{max, min};
         Rect::from_sides(
-            max(a.left(),   b.left()),
-            min(a.right(),  b.right()),
-            max(a.top(),    b.top()),
-            min(a.bottom(), b.bottom())
-        ).all_points()
+            max(a.left(), b.left()),
+            min(a.right(), b.right()),
+            max(a.top(), b.top()),
+            min(a.bottom(), b.bottom()),
+        )
+        .all_points()
     }
 }
 
@@ -91,7 +113,10 @@ impl Rect {
     pub fn from_sides(left: usize, right: usize, top: usize, bottom: usize) -> Rect {
         Rect {
             origin: Point { x: left, y: top },
-            size: Size { x: right-left+1, y: bottom-top+1 }
+            size: Size {
+                x: right - left + 1,
+                y: bottom - top + 1,
+            },
         }
     }
     pub fn left(&self) -> usize {
@@ -110,7 +135,7 @@ impl Rect {
         let mut vec = Vec::with_capacity(self.size.x * self.size.y);
         for x in self.left()..=self.right() {
             for y in self.top()..=self.bottom() {
-                vec.push(Point{x, y});
+                vec.push(Point { x, y });
             }
         }
         vec
@@ -142,7 +167,7 @@ impl FromStr for Claims {
     }
 }
 
-lazy_static!{
+lazy_static! {
     static ref CLAIM_REGEX: Regex = Regex::new(r"^#(?P<id>[0-9]+) @ (?P<origin_x>[0-9]+),(?P<origin_y>[0-9]+): (?P<size_x>[0-9]+)x(?P<size_y>[0-9]+)$").unwrap();
 }
 impl FromStr for Claim {
@@ -150,22 +175,17 @@ impl FromStr for Claim {
     fn from_str(s: &str) -> Result<Claim, Self::Err> {
         if let Some(caps) = CLAIM_REGEX.captures(s) {
             Ok(Claim {
-                id: caps.name("id").unwrap()
-                    .as_str().parse()?,
+                id: caps.name("id").unwrap().as_str().parse()?,
                 rect: Rect {
                     origin: Point {
-                        x: caps.name("origin_x").unwrap()
-                            .as_str().parse()?,
-                        y: caps.name("origin_y").unwrap()
-                            .as_str().parse()?,
+                        x: caps.name("origin_x").unwrap().as_str().parse()?,
+                        y: caps.name("origin_y").unwrap().as_str().parse()?,
                     },
                     size: Size {
-                        x: caps.name("size_x").unwrap()
-                            .as_str().parse()?,
-                        y: caps.name("size_y").unwrap()
-                            .as_str().parse()?,
+                        x: caps.name("size_x").unwrap().as_str().parse()?,
+                        y: caps.name("size_y").unwrap().as_str().parse()?,
                     },
-                }
+                },
             })
         } else {
             Err(Error::new("Could not find claim regex captures"))

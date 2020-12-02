@@ -13,7 +13,11 @@ fn main() -> Result<()> {
 }
 
 fn part1(input: &str) -> Result<usize> {
-    let data: Vec<u8> = input.trim().split(' ').map(|s| s.parse().expect("Found invalid input")).collect();
+    let data: Vec<u8> = input
+        .trim()
+        .split(' ')
+        .map(|s| s.parse().expect("Found invalid input"))
+        .collect();
     let iter = MetadataIterator::new(&data);
     Ok(iter.map(|x| x as usize).sum())
 }
@@ -24,9 +28,11 @@ struct NodeSummary {
 }
 
 fn part2(input: &str) -> Result<usize> {
-    let data: Vec<u8> = input.trim().split(' ').map(|s|
-        s.parse().expect("Found invalid input")
-    ).collect();
+    let data: Vec<u8> = input
+        .trim()
+        .split(' ')
+        .map(|s| s.parse().expect("Found invalid input"))
+        .collect();
     Ok(summarize_node(&data).value)
 }
 
@@ -42,10 +48,7 @@ fn summarize_node(data: &[u8]) -> NodeSummary {
             len += 1;
         }
         //println!(" Node sums to {}", value);
-        NodeSummary {
-            value,
-            len
-        }
+        NodeSummary { value, len }
     } else {
         //println!(" Need to first summarize {} children", header.child_count);
         let mut children = Vec::with_capacity(header.child_count as usize);
@@ -62,21 +65,18 @@ fn summarize_node(data: &[u8]) -> NodeSummary {
             // "A metadata entry of 0 does not refer to any child node."
             if m <= children.len() && m > 0 {
                 // "A metadata entry of 1 refers to the first child node"
-                value += children[m-1].value;
+                value += children[m - 1].value;
             }
         }
-        NodeSummary {
-            value,
-            len
-        }
+        NodeSummary { value, len }
     }
 }
 
 struct MetadataIterator<'n> {
-    data: &'n [u8], // Data that makes up node(s)
+    data: &'n [u8],     // Data that makes up node(s)
     header: &'n Header, // Will point to first two bytes of data
-    ci: u8, // Child Index
-    mr: u8, // Count of own (non-child) Metadata Returns
+    ci: u8,             // Child Index
+    mr: u8,             // Count of own (non-child) Metadata Returns
     child: Option<Box<MetadataIterator<'n>>>,
     i: usize, // Byte Index
 }
@@ -88,7 +88,9 @@ impl<'n> MetadataIterator<'n> {
         let child = if header.child_count == 0 {
             None
         } else {
-            Some(Box::new(MetadataIterator::new( &data[ size_of::<Header>().. ]) ))
+            Some(Box::new(MetadataIterator::new(
+                &data[size_of::<Header>()..],
+            )))
         };
 
         MetadataIterator {
@@ -104,7 +106,8 @@ impl<'n> MetadataIterator<'n> {
         if let Some(child) = &mut self.child {
             match child.next_recursive() {
                 ChildResult::Item(item) => ChildResult::Item(item),
-                ChildResult::End(bytes) => { // This child is done
+                ChildResult::End(bytes) => {
+                    // This child is done
                     self.i += bytes;
                     self.ci += 1;
                     if self.ci < self.header.child_count {
@@ -116,14 +119,16 @@ impl<'n> MetadataIterator<'n> {
                     } // This self.next_recursive will fall through to own metadata
                 }
             }
-        } else { // There is no child
+        } else {
+            // There is no child
             if self.mr == self.header.metadata_count {
                 // No more metadata
                 ChildResult::End(self.i)
-            } else { // Return a metadata
+            } else {
+                // Return a metadata
                 self.mr += 1;
                 self.i += 1;
-                ChildResult::Item(self.data[self.i-1])
+                ChildResult::Item(self.data[self.i - 1])
             }
         }
     }

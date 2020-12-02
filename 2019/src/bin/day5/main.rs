@@ -9,7 +9,9 @@ fn main() {
     cpu.run().unwrap();
     let mut out = 0;
     while let Ok(o) = rx.try_recv() {
-        if out != 0 { panic!("Bad output in part 1") }
+        if out != 0 {
+            panic!("Bad output in part 1")
+        }
         out = o;
     }
     println!("1. {}", out);
