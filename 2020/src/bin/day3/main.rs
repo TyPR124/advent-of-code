@@ -6,7 +6,11 @@ fn main() -> Result<()> {
     let part1_tree_count = {
         let slope = Point { x: 3, y: 1 };
         let mut count = 0;
-        follow_slope(&grid, Point { x: 0, y: 0 }, slope, |occupant| if matches!(occupant, Occupant::Tree) { count += 1});
+        follow_slope(&grid, Point { x: 0, y: 0 }, slope, |occupant| {
+            if matches!(occupant, Occupant::Tree) {
+                count += 1
+            }
+        });
         count
     };
 
