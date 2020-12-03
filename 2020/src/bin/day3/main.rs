@@ -3,7 +3,16 @@ use anyhow::{bail, ensure, Result};
 fn main() -> Result<()> {
     let grid = parse_grid(include_str!("input.txt"))?;
 
-    let product_of_tree_counts = [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
+    let part1_tree_count = {
+        let slope = Point { x: 3, y: 1 };
+        let mut count = 0;
+        follow_slope(&grid, Point { x: 0, y: 0 }, slope, |occupant| if matches!(occupant, Occupant::Tree) { count += 1});
+        count
+    };
+
+    println!("1: {}", part1_tree_count);
+
+    let product_of_tree_counts: usize = [(1, 1), (5, 1), (7, 1), (1, 2)]
         .iter()
         .map(|&(x, y)| {
             let slope = Point { x, y };
@@ -13,14 +22,10 @@ fn main() -> Result<()> {
                     tree_count += 1
                 }
             });
-            (slope, tree_count)
+            tree_count
         })
-        .fold(1, |product, (slope, tree_count)| {
-            if slope == { Point { x: 3, y: 1 } } {
-                println!("1: {}", tree_count);
-            }
-            product * tree_count
-        });
+        .chain(std::iter::once(part1_tree_count))
+        .product();
     println!("2: {}", product_of_tree_counts);
 
     Ok(())
