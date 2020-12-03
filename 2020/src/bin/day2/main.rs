@@ -77,8 +77,8 @@ impl<'a> PasswordRecord<'a> {
         let first_index = self.policy.count_range.start() - 1;
         let second_index = self.policy.count_range.end() - 1;
         let mut chars = self.password.chars().take(second_index + 1);
-        let first_char = chars.nth(first_index).expect("Invalid password record");
-        let second_char = chars.last().expect("Invalid password record");
-        (first_char == self.policy.required_char) ^ (second_char == self.policy.required_char)
+        let first_char = chars.nth(first_index);
+        let second_char = chars.last();
+        (first_char == Some(self.policy.required_char)) ^ (second_char == Some(self.policy.required_char))
     }
 }
