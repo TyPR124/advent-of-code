@@ -79,6 +79,7 @@ impl<'a> PasswordRecord<'a> {
         let mut chars = self.password.chars().take(second_index + 1);
         let first_char = chars.nth(first_index);
         let second_char = chars.last();
-        (first_char == Some(self.policy.required_char)) ^ (second_char == Some(self.policy.required_char))
+        (first_char == Some(self.policy.required_char))
+            ^ (second_char == Some(self.policy.required_char))
     }
 }
