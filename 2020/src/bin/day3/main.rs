@@ -20,13 +20,13 @@ fn main() -> Result<()> {
         .iter()
         .map(|&(x, y)| {
             let slope = Point { x, y };
-            let mut tree_count = 0;
+            let mut count = 0;
             follow_slope(&grid, Point { x: 0, y: 0 }, slope, |occupant| {
                 if matches!(occupant, Occupant::Tree) {
-                    tree_count += 1
+                    count += 1
                 }
             });
-            tree_count
+            count
         })
         .chain(std::iter::once(part1_tree_count))
         .product();
