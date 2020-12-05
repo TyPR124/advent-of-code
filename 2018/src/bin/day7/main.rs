@@ -30,7 +30,7 @@ fn main() -> Result<()> {
 
 fn part1(input: &str) -> Result<String> {
     type DepMap = BTreeMap<u8, BTreeSet<u8>>;
-    fn step(dep_map: &mut DepMap) -> Result<u8> {
+    fn step(dep_map: &mut DepMap) -> u8 {
         // #[allow(clippy::clippy::skip_while_next)]
         let (&next, _) = dep_map
             .iter()
@@ -40,7 +40,7 @@ fn part1(input: &str) -> Result<String> {
         dep_map.iter_mut().for_each(|(_, needs)| {
             needs.remove(&next);
         });
-        Ok(next)
+        next
     }
     let mut dep_map = DepMap::new();
     for node in b'A'..=b'Z' {
@@ -55,7 +55,7 @@ fn part1(input: &str) -> Result<String> {
     }
     let mut out = String::with_capacity(26);
     while !dep_map.is_empty() {
-        out.push(step(&mut dep_map)? as char);
+        out.push(step(&mut dep_map) as char);
     }
     Ok(out)
 }

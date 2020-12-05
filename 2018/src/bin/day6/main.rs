@@ -35,7 +35,7 @@ pub fn main() -> Result<()> {
     });
     let max_area = part1(&points, bounds)?;
     println!("Part1: Max Area: {}", max_area);
-    let close_area = part2(&points, bounds)?;
+    let close_area = part2(&points, bounds);
     println!("Part2: Close Area: {}", close_area);
     Ok(())
 }
@@ -100,8 +100,8 @@ fn part1(points: &[Point], bounds: Bounds) -> Result<usize> {
         .map(|kv| kv.1)
         .max()?)
 }
-fn part2(points: &[Point], bounds: Bounds) -> Result<usize> {
-    Ok(bounds
+fn part2(points: &[Point], bounds: Bounds) -> usize {
+    bounds
         .all_points()
         .par_iter()
         .map(|r| {
@@ -110,7 +110,7 @@ fn part2(points: &[Point], bounds: Bounds) -> Result<usize> {
             r_total
         })
         .filter(|t| *t < 10000)
-        .count())
+        .count()
 }
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 struct Point {

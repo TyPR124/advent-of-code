@@ -2,24 +2,22 @@ mod input;
 use self::input::INPUT;
 
 extern crate aoc_2018;
-use aoc_2018::Result;
 
-fn main() -> Result<()> {
-    let md_sum = part1(INPUT)?;
+fn main() {
+    let md_sum = part1(INPUT);
     println!("Part1: Metadata Sum: {}", md_sum);
-    let value = part2(INPUT)?;
+    let value = part2(INPUT);
     println!("Part2: Summarized Node Value: {}", value);
-    Ok(())
 }
 
-fn part1(input: &str) -> Result<usize> {
+fn part1(input: &str) -> usize {
     let data: Vec<u8> = input
         .trim()
         .split(' ')
         .map(|s| s.parse().expect("Found invalid input"))
         .collect();
     let iter = MetadataIterator::new(&data);
-    Ok(iter.map(|x| x as usize).sum())
+    iter.map(|x| x as usize).sum()
 }
 
 struct NodeSummary {
@@ -27,13 +25,13 @@ struct NodeSummary {
     pub len: usize,
 }
 
-fn part2(input: &str) -> Result<usize> {
+fn part2(input: &str) -> usize {
     let data: Vec<u8> = input
         .trim()
         .split(' ')
         .map(|s| s.parse().expect("Found invalid input"))
         .collect();
-    Ok(summarize_node(&data).value)
+    summarize_node(&data).value
 }
 
 fn summarize_node(data: &[u8]) -> NodeSummary {

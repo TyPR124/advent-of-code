@@ -1,9 +1,7 @@
 extern crate aoc_2018;
-use aoc_2018::Result;
-
 use std::collections::HashMap;
 
-fn main() -> Result<()> {
+fn main() {
     let mut grid = Grid::new(7989);
     //let mut grid = Grid::new(18);
     let size3_hisum = part1(&mut grid);
@@ -11,7 +9,6 @@ fn main() -> Result<()> {
     println!("Part2 will take a while...");
     let hisum = part2(&mut grid);
     println!("Part2: Square with highest sum: {}", hisum);
-    Ok(())
 }
 
 fn part1(grid: &mut Grid) -> Point {
